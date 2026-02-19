@@ -148,6 +148,7 @@ public class qatool extends script.base_script
         "* (command driven tool) olditem - Gives tester immediate access to some of the older loot or quest items that may or may not work.",
         " qarewardresource -- Allows testers to quickly access the Resource Reward Deed interface.  From there, testers can spawn resources needed for crafting.",
         " qadna -- Creates valid DNA samples for testers.",
+        "* (command driven tool) newbieholocron (or holocron/newbieholo) -- Opens the Newbie Holocron UI.",
         " fish [n] -- Succesfully catches a fish. Optional parameter [n] = 1-100. Location is the current planet but does not test for valid fishing location.",
         " collectionclickbypass -- Sets scriptvar to allow 1 second clicks on collection items",
         "* (command driven tool) clearAllCollections -- Removes every collection slot your character has earned.",
@@ -961,6 +962,17 @@ public class qatool extends script.base_script
         if (command.equals(""))
         {
             qa.refreshMenu(self, PROMPT, TITLE, QATOOL_MAIN_MENU, "toolMainMenu", true, SCRIPT_VAR + ".pid");
+            return SCRIPT_CONTINUE;
+        }
+        else if ((toLower(command)).equals("newbieholocron") || (toLower(command)).equals("holocron") || (toLower(command)).equals("newbieholo"))
+        {
+            // Fire the existing Newbie Holocron flow
+            // (script/theme_park/newbie_tutorial/newbie_mail attaches holocron.newbie_handoff on tutorial completion)
+            if (!hasScript(self, "holocron.newbie_handoff"))
+            {
+                attachScript(self, "holocron.newbie_handoff");
+            }
+            messageTo(self, "startHandoff", null, 0, false);
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(command)).equals("setscriptvar"))
@@ -1939,6 +1951,14 @@ public class qatool extends script.base_script
                 obj_id targetShip = space_create.createShipHyperspace(targetShipType, gloc);
                 sendSystemMessage(self, "Spawned ship - OID: " + targetShip, null);
             }
+            return SCRIPT_CONTINUE;
+        }
+        else if ((toLower(command)).equals("holocron"))
+        {
+            // Force-open the existing Newbie Holocron experience
+            attachScript(self, "holocron.newbie_handoff");
+            messageTo(self, "startHandoff", null, 0, false);
+            sendSystemMessageTestingOnly(self, "Newbie Holocron triggered.");
             return SCRIPT_CONTINUE;
         }
         else if ((toLower(command)).equals("?"))
