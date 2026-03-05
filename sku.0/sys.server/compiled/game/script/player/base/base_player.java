@@ -12312,4 +12312,9 @@ public class base_player extends script.base_script
         warpPlayer(self, loc.area, loc.x, loc.y, loc.z, loc.cell, 0, 0, 0, "noHandler", false);
         return SCRIPT_CONTINUE;
     }
+    public int cmdOpenHolocron(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        openHolocronToPage(self, "");
+        return SCRIPT_CONTINUE;
+    }
 }
