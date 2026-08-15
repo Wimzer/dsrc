@@ -1290,7 +1290,8 @@ public class terminal_character_builder extends script.base_script
         "Set Player Size",
         "Increase Factory Speed",
         "Torrent of the Force Drink",
-        "Bespin Port (x10)"
+        "Bespin Port (x10)",
+        "Planetary Mining Droid"
     };
     public static final String[] MEDICINE_OPTIONS =
     {
@@ -8259,6 +8260,10 @@ public class terminal_character_builder extends script.base_script
                 setCount(drink1, 4);
                 setBioLink(drink1, player);
                 sendSystemMessageTestingOnly(player, "Liquid Gold Issued.");
+                break;
+            case 19:
+                static_item.createNewItemFunction("item_planetary_mining_droid", pInv);
+                sendSystemMessageTestingOnly(player, "Planetary Mining Droid issued.");
                 break;
             default:
                 cleanScriptVars(player);
