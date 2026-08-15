@@ -1172,6 +1172,29 @@ public class player_utility extends script.base_script
         chatSendPersistentMessage("Interplanetary Survey Droid", getName(self), subject, report, null);
         return SCRIPT_CONTINUE;
     }
+    public int handlePlanetaryMiningDroidReturn(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id resourceType = params.getObjId("resourceType");
+        int amount = params.getInt("amount");
+        obj_id inventory = utils.getInventoryContainer(self);
+        if (!isIdValid(resourceType) || amount < 1 || !isIdValid(inventory))
+        {
+            sendSystemMessage(self, "The Planetary Mining Droid could not deliver its resources.", null);
+            return SCRIPT_CONTINUE;
+        }
+        obj_id crate = createResourceCrate(resourceType, amount, inventory);
+        if (!isIdValid(crate))
+        {
+            sendSystemMessage(self, "The Planetary Mining Droid could not deliver its resources.", null);
+            return SCRIPT_CONTINUE;
+        }
+        sendSystemMessage(self, "The Planetary Mining Droid returned " + amount + " resource units.", null);
+        return SCRIPT_CONTINUE;
+    }
     public void createBuffs(obj_id player) throws InterruptedException
     {
         if (!hasAttribModifier(player, "TC2 - BUFFS (Health)"))
