@@ -57,6 +57,8 @@ public class player_utility extends script.base_script
     public static final String SCRIPTVAR_RENAME_CHARACTER_NEW_NAME = "renameCharacterNewName";
     public static final String SCRIPTVAR_RENAME_CHARACTER_UNVERIFIED_NEW_NAME = "renameCharacterUnverifiedNewName";
     public static final String GUARD_OCCUPIED = "occupied";
+    public static final String VAR_PLANETARY_MINING_RELEASE_COUNT = "planetary_mining.pending_release_count";
+    public static final String SCRIPTVAR_PLANETARY_MINING_RELEASE_IN_FLIGHT = "planetary_mining.release_in_flight";
     public int OnLogin(obj_id self) throws InterruptedException
     {
         if (utils.checkConfigFlag("GameServer", "jediTestResources"))
@@ -74,6 +76,7 @@ public class player_utility extends script.base_script
             }
         }
         removeObjVar(self, VAR_FIND_BASE);
+        startPlanetaryMiningDroidRelease(self);
         if (buff.hasBuff(self, "tcg_series3_hands_of_seduction"))
         {
             if (buff.removeBuff(self, "tcg_series3_hands_of_seduction"))
@@ -1193,6 +1196,55 @@ public class player_utility extends script.base_script
             return SCRIPT_CONTINUE;
         }
         sendSystemMessage(self, "The Planetary Mining Droid returned " + amount + " resource units.", null);
+        int pendingReleases = getIntObjVar(self, VAR_PLANETARY_MINING_RELEASE_COUNT);
+        setObjVar(self, VAR_PLANETARY_MINING_RELEASE_COUNT, pendingReleases + 1);
+        startPlanetaryMiningDroidRelease(self);
+        return SCRIPT_CONTINUE;
+    }
+    public void startPlanetaryMiningDroidRelease(obj_id self) throws InterruptedException
+    {
+        if (getIntObjVar(self, VAR_PLANETARY_MINING_RELEASE_COUNT) < 1 || utils.hasScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RELEASE_IN_FLIGHT))
+        {
+            return;
+        }
+        if (planetaryMiningDroidAdjustAccountFeatureId(self, self, -1))
+        {
+            utils.setScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RELEASE_IN_FLIGHT, 1);
+        }
+        else
+        {
+            messageTo(self, "retryPlanetaryMiningDroidRelease", null, 60.0f, false);
+        }
+    }
+    public int handlePlanetaryMiningDroidAccountFeatureResponse(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!utils.hasScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RELEASE_IN_FLIGHT))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        utils.removeScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RELEASE_IN_FLIGHT);
+        if (params != null && params.getBoolean("success"))
+        {
+            int pendingReleases = getIntObjVar(self, VAR_PLANETARY_MINING_RELEASE_COUNT) - 1;
+            if (pendingReleases > 0)
+            {
+                setObjVar(self, VAR_PLANETARY_MINING_RELEASE_COUNT, pendingReleases);
+            }
+            else
+            {
+                removeObjVar(self, VAR_PLANETARY_MINING_RELEASE_COUNT);
+            }
+            startPlanetaryMiningDroidRelease(self);
+        }
+        else
+        {
+            messageTo(self, "retryPlanetaryMiningDroidRelease", null, 60.0f, false);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int retryPlanetaryMiningDroidRelease(obj_id self, dictionary params) throws InterruptedException
+    {
+        startPlanetaryMiningDroidRelease(self);
         return SCRIPT_CONTINUE;
     }
     public void createBuffs(obj_id player) throws InterruptedException

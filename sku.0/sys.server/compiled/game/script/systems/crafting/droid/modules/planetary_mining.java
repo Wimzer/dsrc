@@ -42,6 +42,7 @@ public class planetary_mining extends script.base_script
     public static final String VAR_RESOURCE_TYPES = "planetary_mining.resource_types";
     public static final String VAR_RESOURCE_CONCENTRATIONS = "planetary_mining.resource_concentrations";
     public static final String VAR_RESOURCE_TYPE = "planetary_mining.resource_type";
+    public static final String VAR_ACCOUNT_RESERVATION_PENDING = "planetary_mining.account_reservation_pending";
     public static final String ATTRIBUTE_BASE = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
     public static final String ATTRIBUTE_EXTRACTION_RATE = ATTRIBUTE_BASE + "extractRate";
     public static final float MIN_ACTIVE_DENSITY = 0.0001f;
@@ -56,18 +57,13 @@ public class planetary_mining extends script.base_script
 
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
-        if (utils.isProfession(player, utils.TRADER))
+        menu_info_data mid = mi.getMenuItemByType(menu_info_types.ITEM_USE);
+        if (mid == null)
         {
-            menu_info_data mid = mi.getMenuItemByType(menu_info_types.ITEM_USE);
-            if (mid == null)
-            {
-                mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("", ""));
-            }
-            else
-            {
-                mid.setServerNotify(true);
-            }
+            int menu = mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("", ""));
+            mid = mi.getMenuItemById(menu);
         }
+        mid.setServerNotify(true);
         return SCRIPT_CONTINUE;
     }
 
@@ -79,7 +75,7 @@ public class planetary_mining extends script.base_script
         }
         if (!utils.isProfession(player, utils.TRADER))
         {
-            sendSystemMessage(player, "You must be a Trader to use this droid.", null);
+            sendSystemMessage(player, "The interface for this droid is too complex for you to interact with.", null);
             return SCRIPT_CONTINUE;
         }
         if (getTopMostContainer(player) != player)
@@ -288,9 +284,51 @@ public class planetary_mining extends script.base_script
             return SCRIPT_CONTINUE;
         }
 
+        if (utils.hasScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (!planetaryMiningDroidAdjustAccountFeatureId(player, self, 1))
+        {
+            sendSystemMessage(player, "The Planetary Mining Droid could not reserve an account mining slot.", null);
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        utils.setScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING, 1);
+        sendSystemMessage(player, "Reserving a planetary mining slot...", null);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int handlePlanetaryMiningDroidAccountFeatureResponse(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!utils.hasScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        utils.removeScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING);
+        obj_id player = utils.getContainingPlayer(self);
+        if (params == null || !params.getBoolean("success") || !isIdValid(player))
+        {
+            if (isIdValid(player))
+            {
+                sendSystemMessage(player, "This account already has three active Planetary Mining Droid jobs.", null);
+            }
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        obj_id resourceType = utils.getObjIdScriptVar(self, VAR_RESOURCE_TYPE);
+        String planet = utils.getStringScriptVar(self, VAR_PLANET);
+        String resourceClass = utils.getStringScriptVar(self, VAR_SELECTED_RESOURCE_CLASS);
+        if (!isSelectedResourceAvailable(planet, resourceClass, resourceType))
+        {
+            planetaryMiningDroidAdjustAccountFeatureId(player, player, -1);
+            sendSystemMessage(player, "That resource is no longer active on the selected planet.", null);
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         dictionary data = new dictionary();
         data.put("resourceType", resourceType);
-        data.put("amount", amount);
+        data.put("amount", getMiningAmount(self));
         data.put("planet", planet);
         messageTo(player, "handlePlanetaryMiningDroidReturn", data, getMiningTime(self), true);
         consumeCharge(self);

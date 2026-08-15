@@ -25943,6 +25943,11 @@ public class base_class
     {
         _adjustSwgTcgAccountFeatureId(getLongWithNull(player), getLongWithNull(item), featureId, adjustment);
     }
+    private static native boolean _planetaryMiningDroidAdjustAccountFeatureId(long player, long callbackTarget, int adjustment);
+    public static boolean planetaryMiningDroidAdjustAccountFeatureId(obj_id player, obj_id callbackTarget, int adjustment)
+    {
+        return _planetaryMiningDroidAdjustAccountFeatureId(getLongWithNull(player), getLongWithNull(callbackTarget), adjustment);
+    }
     public static native String veteranGetEventAnnouncement(String event);
     public static native String veteranGetEventDescription(String event);
     public static native String veteranGetEventUrl(String event);
