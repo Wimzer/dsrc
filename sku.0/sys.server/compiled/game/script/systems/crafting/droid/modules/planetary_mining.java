@@ -485,7 +485,7 @@ public class planetary_mining extends script.base_script
 
     public int getMiningTime(obj_id self) throws InterruptedException
     {
-        return 20 * 60 * 60;
+        return 30;
     }
 
     public int getMiningAmount(obj_id self) throws InterruptedException
