@@ -485,18 +485,7 @@ public class planetary_mining extends script.base_script
 
     public int getMiningTime(obj_id self) throws InterruptedException
     {
-        final int minTime = 15 * 60;
-        final int maxTime = 60 * 60;
-        float quality = getFloatObjVar(self, ATTRIBUTE_BASE + "mechanism_quality");
-        if (quality <= 0)
-        {
-            quality = getFloatObjVar(self, LEGACY_STATIC_ATTRIBUTE_BASE + "mechanism_quality");
-        }
-        if (quality > 100)
-        {
-            quality = 100;
-        }
-        return minTime + (int)((maxTime - minTime) * ((100 - quality) / 100));
+        return 20 * 60 * 60;
     }
 
     public int getMiningAmount(obj_id self) throws InterruptedException
