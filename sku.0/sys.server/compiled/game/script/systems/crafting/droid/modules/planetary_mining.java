@@ -79,6 +79,11 @@ public class planetary_mining extends script.base_script
             sendSystemMessage(player, "The interface for this droid is too complex for you to interact with.", null);
             return SCRIPT_CONTINUE;
         }
+        if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+        {
+            sendSystemMessage(player, "Your Survey License is occupied by an active Planetary Mining Droid.", null);
+            return SCRIPT_CONTINUE;
+        }
         if (getTopMostContainer(player) != player)
         {
             sendSystemMessage(player, "You must be outdoors to launch this droid.", null);
@@ -271,6 +276,12 @@ public class planetary_mining extends script.base_script
         obj_id resourceType = utils.getObjIdScriptVar(self, VAR_RESOURCE_TYPE);
         String planet = utils.getStringScriptVar(self, VAR_PLANET);
         String resourceClass = utils.getStringScriptVar(self, VAR_SELECTED_RESOURCE_CLASS);
+        if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+        {
+            sendSystemMessage(player, "Your Survey License is occupied by an active Planetary Mining Droid.", null);
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         if (!utils.isNestedWithin(self, player) || !isSelectedResourceAvailable(planet, resourceClass, resourceType))
         {
             sendSystemMessage(player, "That resource is no longer active on the selected planet.", null);
@@ -334,6 +345,14 @@ public class planetary_mining extends script.base_script
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
+        if (!buff.applyBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE, getMiningTime(self)))
+        {
+            planetaryMiningDroidAdjustAccountFeatureId(player, player, -1);
+            sendSystemMessage(player, "The Planetary Mining Droid could not occupy your Survey License.", null);
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE, 1);
         dictionary data = new dictionary();
         int surveying = getSkillStatMod(player, "surveying");
         int resourceSamplingIncrease = getSkillStatisticModifier(player, "expertise_resource_sampling_increase");

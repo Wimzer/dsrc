@@ -1862,6 +1862,7 @@ event_empireday_imperial_propaganda_counter	empireday_imp_track_antipropaganda	c
 event_empireday_rebel_vandal_counter	empireday_reb_track_vandal	counter_vadal		1	buffs.rebel_lifeday_casual	900		0		0		0		0		0	STATE_NONE	none			1	0		0	0	0	1	1000	1	0	0	1	1
 tcg_series4_falleens_fist	tcg_resource_gather			1	buffs.tcg_series4_falleens_fist	3600		0		0		0		0		0	STATE_NONE	none	appearance/pt_falleens_fist.prt		1	0		0	0	1	1	1	1	0	0	1	1
 droid_hand_sample	droid_resource_gather			0	buffs.droid_hand_sampling	0	expertise_resource_sampling_increase	5		0		0		0		0	STATE_NONE	none			1	0		1	1	1	0	1	1	0	1	1	1
+pmd_survey_license_occupied	planetary_mining			1	planetary_mining_droid.survey_license_occupied	0		0		0		0		0		0	STATE_NONE	none			1	1		0	0	0	0	1	1	0	1	1	1
 costume_spider_droid	shapechange	costume		1	buffs.costume	3600	storyteller_costume	23		0		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 costume_undead_wookie	shapechange	costume		1	buffs.costume	3600	storyteller_costume	24		0		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 costume_burning_ewok	shapechange	costume		1	buffs.costume	3600	storyteller_costume	25	costume_burning_effect	0		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1

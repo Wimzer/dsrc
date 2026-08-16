@@ -24,6 +24,8 @@ public class resource extends script.base_script
     public static final String VAR_SURVEY_RANGE_MAX = VAR_SURVEY_BASE + ".range.max";
     public static final String VAR_SURVEY_RANGE_VALUE = VAR_SURVEY_BASE + ".range.value";
     public static final String VAR_SAMPLE_STAMP = VAR_SURVEY_BASE + ".sample.stamp";
+    public static final String VAR_PLANETARY_MINING_SURVEY_LICENSE = "planetary_mining.survey_license_occupied";
+    public static final String BUFF_PLANETARY_MINING_SURVEY_LICENSE = "pmd_survey_license_occupied";
     public static final String HANDLER_SET_RANGE = "handleSetRange";
     public static final String HANDLER_SET_RESOLUTION = "handleSetResolution";
     public static final String VAR_SETTINGS_BASE = VAR_SURVEY_BASE + ".settings";
@@ -381,6 +383,11 @@ public class resource extends script.base_script
     {
         if ((user == null) || (tool == null) || (type.equals("")))
         {
+            return SAMPLE_STOP_LOOP;
+        }
+        if (hasObjVar(user, VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(user, BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+        {
+            sendSystemMessage(user, "Your Survey License is occupied by an active Planetary Mining Droid.", null);
             return SAMPLE_STOP_LOOP;
         }
         obj_id typeId = getResourceTypeByName(type);

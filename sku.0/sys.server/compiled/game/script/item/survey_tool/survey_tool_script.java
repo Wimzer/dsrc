@@ -478,6 +478,11 @@ public class survey_tool_script extends script.base_script
             sendSystemMessage(player, getString(new string_id(STF, "must_have_harvester")), null);
             return SCRIPT_CONTINUE;
         }
+        if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+        {
+            sendSystemMessage(player, "Your Survey License is occupied by an active Planetary Mining Droid.", null);
+            return SCRIPT_CONTINUE;
+        }
         boolean surveying = utils.hasScriptVar(player, "surveying.surveying") || utils.hasScriptVar(self, "surveying.surveying");
         if (surveying)
         {

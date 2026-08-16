@@ -1181,6 +1181,8 @@ public class player_utility extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
+        removeObjVar(self, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE);
+        buff.removeBuff(self, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE);
         obj_id resourceType = params.getObjId("resourceType");
         int amount = params.getInt("amount");
         obj_id inventory = utils.getInventoryContainer(self);
