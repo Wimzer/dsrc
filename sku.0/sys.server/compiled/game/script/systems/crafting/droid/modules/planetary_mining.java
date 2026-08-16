@@ -308,16 +308,19 @@ public class planetary_mining extends script.base_script
         }
         utils.removeScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING);
         obj_id player = utils.getContainingPlayer(self);
-        if (isIdValid(player) && params != null)
-        {
-            sendSystemMessage(player, "PMD account reservation: " + params.getInt("oldValue") + " -> " + params.getInt("newValue"), null);
-        }
         if (params == null || !params.getBoolean("success") || !isIdValid(player))
         {
             if (isIdValid(player))
             {
                 sendSystemMessage(player, "This account already has three active Planetary Mining Droid jobs.", null);
             }
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        if (params.getInt("newValue") > 3)
+        {
+            planetaryMiningDroidAdjustAccountFeatureId(player, player, -1);
+            sendSystemMessage(player, "This account already has three active Planetary Mining Droid jobs.", null);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
