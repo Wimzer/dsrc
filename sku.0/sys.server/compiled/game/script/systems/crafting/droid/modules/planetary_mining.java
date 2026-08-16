@@ -335,12 +335,16 @@ public class planetary_mining extends script.base_script
             return SCRIPT_CONTINUE;
         }
         dictionary data = new dictionary();
+        int surveying = getSkillStatMod(player, "surveying");
+        int resourceSamplingIncrease = getSkillStatisticModifier(player, "expertise_resource_sampling_increase");
+        boolean falleensFist = buff.hasBuff(player, "tcg_series4_falleens_fist");
         data.put("resourceType", resourceType);
         data.put("amount", getMiningAmount(self));
         data.put("planet", planet);
-        data.put("surveying", getSkillStatMod(player, "surveying"));
-        data.put("resourceSamplingIncrease", getSkillStatisticModifier(player, "expertise_resource_sampling_increase"));
-        data.put("falleensFist", buff.hasBuff(player, "tcg_series4_falleens_fist"));
+        data.put("surveying", surveying);
+        data.put("resourceSamplingIncrease", resourceSamplingIncrease);
+        data.put("falleensFist", falleensFist);
+        sendSystemMessage(player, "PMD snapshot: surveying=" + surveying + ", sampling bonus=" + resourceSamplingIncrease + "%, Falleen's Fist=" + falleensFist, null);
         messageTo(player, "handlePlanetaryMiningDroidReturn", data, getMiningTime(self), true);
         consumeCharge(self);
         sendSystemMessage(player, "The Planetary Mining Droid has been launched.", null);
