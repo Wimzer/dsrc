@@ -44,6 +44,7 @@ public class planetary_mining extends script.base_script
     public static final String VAR_RESOURCE_TYPE = "planetary_mining.resource_type";
     public static final String VAR_ACCOUNT_RESERVATION_PENDING = "planetary_mining.account_reservation_pending";
     public static final String ATTRIBUTE_BASE = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
+    public static final String LEGACY_STATIC_ATTRIBUTE_BASE = "crafting.component_attribute.";
     public static final String ATTRIBUTE_EXTRACTION_RATE = ATTRIBUTE_BASE + "extractRate";
     public static final float MIN_ACTIVE_DENSITY = 0.0001f;
     public static final int MAX_RESOURCE_MENU_ENTRIES = 50;
@@ -480,6 +481,10 @@ public class planetary_mining extends script.base_script
         final int minTime = 15 * 60;
         final int maxTime = 60 * 60;
         float quality = getFloatObjVar(self, ATTRIBUTE_BASE + "mechanism_quality");
+        if (quality <= 0)
+        {
+            quality = getFloatObjVar(self, LEGACY_STATIC_ATTRIBUTE_BASE + "mechanism_quality");
+        }
         if (quality > 100)
         {
             quality = 100;
@@ -490,6 +495,10 @@ public class planetary_mining extends script.base_script
     public int getMiningAmount(obj_id self) throws InterruptedException
     {
         float baseExtractionRate = getFloatObjVar(self, ATTRIBUTE_EXTRACTION_RATE);
+        if (baseExtractionRate <= 0)
+        {
+            baseExtractionRate = getFloatObjVar(self, LEGACY_STATIC_ATTRIBUTE_BASE + "extractRate");
+        }
         return (int)(baseExtractionRate * 0.9f);
     }
 
