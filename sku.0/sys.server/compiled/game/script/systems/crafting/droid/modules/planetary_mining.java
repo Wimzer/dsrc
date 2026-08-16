@@ -338,6 +338,9 @@ public class planetary_mining extends script.base_script
         data.put("resourceType", resourceType);
         data.put("amount", getMiningAmount(self));
         data.put("planet", planet);
+        data.put("surveying", getSkillStatMod(player, "surveying"));
+        data.put("resourceSamplingIncrease", getSkillStatisticModifier(player, "expertise_resource_sampling_increase"));
+        data.put("falleensFist", buff.hasBuff(player, "tcg_series4_falleens_fist"));
         messageTo(player, "handlePlanetaryMiningDroidReturn", data, getMiningTime(self), true);
         consumeCharge(self);
         sendSystemMessage(player, "The Planetary Mining Droid has been launched.", null);
