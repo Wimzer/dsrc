@@ -4,7 +4,7 @@
 
 @class object_template 5
 
-sharedTemplate = "object/tangible/component/droid/shared_droid_interplanetary_survey.iff"
+sharedTemplate = "object/tangible/component/droid/shared_planetary_mining_droid.iff"
 
 volume = 1
 
