@@ -41,13 +41,16 @@ public class planetary_mining extends script.base_script
     public static final String VAR_SELECTED_RESOURCE_CLASS = "planetary_mining.selected_resource_class";
     public static final String VAR_RESOURCE_TYPES = "planetary_mining.resource_types";
     public static final String VAR_RESOURCE_CONCENTRATIONS = "planetary_mining.resource_concentrations";
+    public static final String VAR_RESOURCE_SITES = "planetary_mining.resource_sites";
     public static final String VAR_RESOURCE_TYPE = "planetary_mining.resource_type";
     public static final String VAR_ACCOUNT_RESERVATION_PENDING = "planetary_mining.account_reservation_pending";
     public static final String ATTRIBUTE_BASE = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
     public static final String LEGACY_STATIC_ATTRIBUTE_BASE = "crafting.component_attribute.";
     public static final String ATTRIBUTE_EXTRACTION_RATE = ATTRIBUTE_BASE + "extractRate";
-    public static final float MIN_ACTIVE_DENSITY = 0.0001f;
+    public static final float MIN_ACTIVE_DENSITY = 0.0f;
     public static final int MAX_RESOURCE_MENU_ENTRIES = 50;
+    public static final int PEAK_DENSITY_SAMPLES_PER_SIDE = 65;
+    public static final float PLANET_INTERIOR_HALF_WIDTH = 7680.0f;
     public static final float CONCENTRATION_MULTIPLIER = 0.85f;
 
     public int OnInitialize(obj_id self) throws InterruptedException
@@ -201,13 +204,12 @@ public class planetary_mining extends script.base_script
         }
 
         obj_id[] resourceTypes = new obj_id[resources.length];
-        float[] concentrations = new float[resources.length];
         for (int i = 0; i < resources.length; ++i)
         {
             resourceTypes[i] = resources[i].getResourceType();
-            concentrations[i] = resources[i].getDensity() * CONCENTRATION_MULTIPLIER;
         }
-        utils.setScriptVar(self, VAR_RESOURCE_CONCENTRATIONS, concentrations);
+        selectResourceConcentrations(self, resourceTypes, planet, resourceClass);
+        float[] concentrations = utils.getFloatArrayScriptVar(self, VAR_RESOURCE_CONCENTRATIONS);
         String[] names = new String[resources.length];
         for (int i = 0; i < resources.length; ++i)
         {
@@ -241,7 +243,8 @@ public class planetary_mining extends script.base_script
         String planet = utils.getStringScriptVar(self, VAR_PLANET);
         String resourceClass = utils.getStringScriptVar(self, VAR_SELECTED_RESOURCE_CLASS);
         float[] concentrations = utils.getFloatArrayScriptVar(self, VAR_RESOURCE_CONCENTRATIONS);
-        if (concentrations == null || index >= concentrations.length)
+        location[] sites = utils.getLocationArrayScriptVar(self, VAR_RESOURCE_SITES);
+        if (concentrations == null || sites == null || index >= concentrations.length || index >= sites.length || sites[index] == null)
         {
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
@@ -261,7 +264,7 @@ public class planetary_mining extends script.base_script
             return SCRIPT_CONTINUE;
         }
         utils.setScriptVar(self, VAR_RESOURCE_TYPE, resourceType);
-        showMiningResourceConfirmation(self, player, activeResource, concentrations[index]);
+        showMiningResourceConfirmation(self, player, activeResource, sites[index], concentrations[index]);
         return SCRIPT_CONTINUE;
     }
 
@@ -371,13 +374,14 @@ public class planetary_mining extends script.base_script
         return SCRIPT_CONTINUE;
     }
 
-    public void showMiningResourceConfirmation(obj_id self, obj_id player, resource_density activeResource, float selectedDensity) throws InterruptedException
+    public void showMiningResourceConfirmation(obj_id self, obj_id player, resource_density activeResource, location selectedSite, float selectedDensity) throws InterruptedException
     {
         obj_id resourceType = activeResource.getResourceType();
         String resourceClass = getResourceClass(resourceType);
         String details = "Resource: " + getLocalizedResourceName(resourceType) + "\n";
         details += "Type: " + getLocalizedResourceClassName(resourceClass) + "\n";
-        details += "Estimated concentration: " + Math.round(selectedDensity * 100) + "%\n\nAttributes:\n";
+        details += "Selected concentration: " + Math.round(selectedDensity * 100) + "% at (" + Math.round(selectedSite.x) + ", " + Math.round(selectedSite.z) + ")\n";
+        details += "Randomly selected from the three best sampled sites (4,225 samples).\n\nAttributes:\n";
         resource_attribute[] attributes = getResourceAttributes(resourceType);
         if (attributes != null)
         {
@@ -397,6 +401,93 @@ public class planetary_mining extends script.base_script
     public boolean isListSelectionValid(dictionary params) throws InterruptedException
     {
         return params != null && !params.isEmpty() && sui.getIntButtonPressed(params) != sui.BP_CANCEL && sui.getListboxSelectedRow(params) >= 0;
+    }
+
+    public void selectResourceConcentrations(obj_id self, obj_id[] resourceTypes, String planet, String resourceClass) throws InterruptedException
+    {
+        float[][] topDensities = new float[resourceTypes.length][3];
+        location[][] topLocations = new location[resourceTypes.length][3];
+        for (int i = 0; i < resourceTypes.length; ++i)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                topDensities[i][j] = -1.0f;
+            }
+        }
+        for (int x = 0; x < PEAK_DENSITY_SAMPLES_PER_SIDE; ++x)
+        {
+            float sampleX = -PLANET_INTERIOR_HALF_WIDTH + (2.0f * PLANET_INTERIOR_HALF_WIDTH * x / (PEAK_DENSITY_SAMPLES_PER_SIDE - 1));
+            for (int z = 0; z < PEAK_DENSITY_SAMPLES_PER_SIDE; ++z)
+            {
+                float sampleZ = -PLANET_INTERIOR_HALF_WIDTH + (2.0f * PLANET_INTERIOR_HALF_WIDTH * z / (PEAK_DENSITY_SAMPLES_PER_SIDE - 1));
+                location sampleLocation = new location(sampleX, 0, sampleZ, planet);
+                resource_density[] densities = requestResourceList(sampleLocation, 0.0f, 1.0f, resourceClass);
+                if (densities == null)
+                {
+                    continue;
+                }
+                for (resource_density density : densities) {
+                    for (int i = 0; i < resourceTypes.length; ++i)
+                    {
+                        if (density.getResourceType() != resourceTypes[i])
+                        {
+                            continue;
+                        }
+                        for (int j = 0; j < 3; ++j)
+                        {
+                            if (density.getDensity() > topDensities[i][j])
+                            {
+                                for (int k = 2; k > j; --k)
+                                {
+                                    topDensities[i][k] = topDensities[i][k - 1];
+                                    topLocations[i][k] = topLocations[i][k - 1];
+                                }
+                                topDensities[i][j] = density.getDensity();
+                                topLocations[i][j] = sampleLocation;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        float[] concentrations = new float[resourceTypes.length];
+        location[] sites = new location[resourceTypes.length];
+        for (int i = 0; i < resourceTypes.length; ++i)
+        {
+            float total = 0.0f;
+            int count = 0;
+            for (int j = 0; j < 3; ++j)
+            {
+                if (topLocations[i][j] != null)
+                {
+                    total += topDensities[i][j];
+                    ++count;
+                }
+            }
+            if (count == 0)
+            {
+                concentrations[i] = 0.0f;
+                sites[i] = new location(0, 0, 0, planet);
+                continue;
+            }
+            float average = total / count;
+            int[] eligible = new int[count];
+            int eligibleCount = 0;
+            for (int j = 0; j < count; ++j)
+            {
+                if (topDensities[i][j] >= average)
+                {
+                    eligible[eligibleCount++] = j;
+                }
+            }
+            int selected = eligible[rand(0, eligibleCount - 1)];
+            concentrations[i] = topDensities[i][selected] * CONCENTRATION_MULTIPLIER;
+            sites[i] = topLocations[i][selected];
+        }
+        utils.setScriptVar(self, VAR_RESOURCE_CONCENTRATIONS, concentrations);
+        utils.setScriptVar(self, VAR_RESOURCE_SITES, sites);
     }
 
     public String[] getAvailableResourceClasses(String planet) throws InterruptedException
@@ -545,6 +636,7 @@ public class planetary_mining extends script.base_script
         utils.removeScriptVar(self, VAR_SELECTED_RESOURCE_CLASS);
         utils.removeScriptVar(self, VAR_RESOURCE_TYPES);
         utils.removeScriptVar(self, VAR_RESOURCE_CONCENTRATIONS);
+        utils.removeScriptVar(self, VAR_RESOURCE_SITES);
         utils.removeScriptVar(self, VAR_RESOURCE_TYPE);
     }
 
