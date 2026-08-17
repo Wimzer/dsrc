@@ -310,7 +310,7 @@ public class planetary_mining extends script.base_script
         }
         utils.setScriptVar(self, VAR_RESOURCE_TYPE, resourceType);
         utils.setScriptVar(self, VAR_SURVEY_SELECTED, 1);
-        resource_density selectedResource = getResourceDensity(planet, surveyLocation, resourceType);
+        resource_density selectedResource = getResourceDensity(planet, surveyLocation, resourceClass, resourceType);
         if (selectedResource == null)
         {
             sendSystemMessage(player, "That resource is no longer active at the selected coordinates.", null);
@@ -491,7 +491,25 @@ public class planetary_mining extends script.base_script
 
     public resource_density[] getAvailablePlanetResourceDensities(String planet, location surveyLocation, String resourceClass) throws InterruptedException
     {
-        return requestResourceList(surveyLocation, MIN_ACTIVE_DENSITY, 1.0f, resourceClass);
+        if (!isAllowedSurveyLocation(planet, surveyLocation) || resourceClass == null || resourceClass.equals(""))
+        {
+            return null;
+        }
+        resource_density[] availableResources = getAvailableResourceDensitiesForPlanetaryMiningDroid(surveyLocation, resourceClass);
+        if (availableResources == null)
+        {
+            return null;
+        }
+        Vector activeResources = new Vector();
+        for (resource_density resource : availableResources) {
+            if (resource.getDensity() >= MIN_ACTIVE_DENSITY)
+            {
+                activeResources.add(resource);
+            }
+        }
+        resource_density[] result = new resource_density[activeResources.size()];
+        activeResources.toArray(result);
+        return result;
     }
 
     public boolean isEligibleMiningDroidUser(obj_id self, obj_id player) throws InterruptedException
@@ -535,9 +553,9 @@ public class planetary_mining extends script.base_script
         return highest;
     }
 
-    public resource_density getResourceDensity(String planet, location surveyLocation, obj_id resourceType) throws InterruptedException
+    public resource_density getResourceDensity(String planet, location surveyLocation, String resourceClass, obj_id resourceType) throws InterruptedException
     {
-        resource_density[] resources = getAvailablePlanetResourceDensities(planet, surveyLocation, getResourceClass(resourceType));
+        resource_density[] resources = getAvailablePlanetResourceDensities(planet, surveyLocation, resourceClass);
         if (resources != null)
         {
             for (resource_density availableResource : resources) {
