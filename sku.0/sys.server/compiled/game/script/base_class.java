@@ -14202,6 +14202,11 @@ public class base_class
      * @return an array of resource type/densities that meet the criteria, or null on error
      */
     public static native resource_density[] requestResourceList(location loc, float minDensity, float maxDensity, String resourceClass);
+    private static native boolean _requestPmdSurvey(long player, long callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z);
+    public static boolean requestPmdSurvey(obj_id player, obj_id callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z)
+    {
+        return _requestPmdSurvey(getLongWithNull(player), getLongWithNull(callbackTarget), parentResourceClass, resourceTypeName, planetName, x, z);
+    }
     /**
      * Get all the attributes for a resource type
      * @param resource The id of the resource type
