@@ -55,7 +55,6 @@ public class planetary_mining extends script.base_script
     public static final String VAR_RESOURCE_TYPE = "planetary_mining.resource_type";
     public static final String VAR_SURVEY_SELECTED = "planetary_mining.survey_selected";
     public static final String VAR_ACCOUNT_RESERVATION_PENDING = "planetary_mining.account_reservation_pending";
-    public static final String OBJVAR_SURVEY_TOOL_BURNED = "planetary_mining.survey_tool_burned";
     public static final String ATTRIBUTE_BASE = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
     public static final String LEGACY_STATIC_ATTRIBUTE_BASE = "crafting.component_attribute.";
     public static final String ATTRIBUTE_EXTRACTION_RATE = ATTRIBUTE_BASE + "extractRate";
@@ -96,11 +95,6 @@ public class planetary_mining extends script.base_script
         if (!utils.isProfession(player, utils.TRADER))
         {
             sendSystemMessage(player, "The interface for this droid is too complex for you to interact with.", null);
-            return SCRIPT_CONTINUE;
-        }
-        if (hasObjVar(self, OBJVAR_SURVEY_TOOL_BURNED))
-        {
-            sendSystemMessage(player, "The survey burns out the droid's survey tool. You will be unable to use this droid's survey tool again.", null);
             return SCRIPT_CONTINUE;
         }
         if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
@@ -271,17 +265,23 @@ public class planetary_mining extends script.base_script
         for (int i = 0; i < activeResources.length; ++i)
         {
             resourceTypes[i] = activeResources[i].getResourceType();
-            resourceNames[i] = getLocalizedResourceName(resourceTypes[i]);
+            resourceNames[i] = getLocalizedResourceName(resourceTypes[i]) + ": " + Math.round(activeResources[i].getDensity() * 100) + "%";
         }
         utils.setScriptVar(self, VAR_RESOURCE_TYPES, resourceTypes);
-        sui.listbox(self, player, "Select a resource to survey.", sui.OK_CANCEL, "Planetary Mining Droid", resourceNames, "handleMiningResourceSelection");
+        sui.listbox(self, player, "Survey results. Select a resource to launch the droid.", sui.OK_CANCEL, "Planetary Mining Droid", resourceNames, "handleMiningResourceSelection");
         return SCRIPT_CONTINUE;
     }
 
     public int handleMiningResourceSelection(obj_id self, dictionary params) throws InterruptedException
     {
-        if (!isListSelectionValid(params))
+        if (params == null || params.isEmpty())
         {
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        if (sui.getIntButtonPressed(params) == sui.BP_CANCEL)
+        {
+            consumeCharge(self);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
@@ -310,23 +310,27 @@ public class planetary_mining extends script.base_script
         }
         utils.setScriptVar(self, VAR_RESOURCE_TYPE, resourceType);
         utils.setScriptVar(self, VAR_SURVEY_SELECTED, 1);
-        setObjVar(self, OBJVAR_SURVEY_TOOL_BURNED, 1);
         resource_density selectedResource = getResourceDensity(planet, surveyLocation, resourceType);
-        if (selectedResource != null)
+        if (selectedResource == null)
         {
-            showMiningResourceConfirmation(self, player, selectedResource, surveyLocation);
-        }
-        else
-        {
+            sendSystemMessage(player, "That resource is no longer active at the selected coordinates.", null);
             cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
         }
+        showMiningResourceConfirmation(self, player, selectedResource, surveyLocation);
         return SCRIPT_CONTINUE;
     }
 
     public int handleMiningResourceConfirm(obj_id self, dictionary params) throws InterruptedException
     {
-        if (params == null || params.isEmpty() || sui.getIntButtonPressed(params) == sui.BP_CANCEL)
+        if (params == null || params.isEmpty())
         {
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        if (sui.getIntButtonPressed(params) == sui.BP_CANCEL)
+        {
+            consumeCharge(self);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
@@ -439,56 +443,8 @@ public class planetary_mining extends script.base_script
     public void showMiningResourceConfirmation(obj_id self, obj_id player, resource_density activeResource, location selectedSite) throws InterruptedException
     {
         obj_id resourceType = activeResource.getResourceType();
-        String resourceClass = getResourceClass(resourceType);
-        int pid = createSUIPage("/Script.pmdSurvey", self, player);
-        if (pid < 0)
-        {
-            cleanScriptVars(self);
-            return;
-        }
-        setSUIProperty(pid, "title", sui.PROP_TEXT, "Planetary Mining Survey");
-        setSUIProperty(pid, "resource", sui.PROP_TEXT, "Resource: " + getLocalizedResourceName(resourceType));
-        setSUIProperty(pid, "resourceClass", sui.PROP_TEXT, "Type: " + getLocalizedResourceClassName(resourceClass));
-        setSUIProperty(pid, "location", sui.PROP_TEXT, "Target: (" + Math.round(selectedSite.x) + ", " + Math.round(selectedSite.z) + "), 64m range");
-        setSUIProperty(pid, "map", "SourceResource", getMiningSurveyMapResource(selectedSite.area));
-        for (int row = 0; row < 3; ++row)
-        {
-            for (int column = 0; column < 3; ++column)
-            {
-                location sample = new location(selectedSite.x + ((column - 1) * 32), 0, selectedSite.z + ((row - 1) * 32), selectedSite.area);
-                resource_density density = getResourceDensity(selectedSite.area, sample, resourceType);
-                String value = density == null ? "N/A" : Math.round(density.getDensity() * 100) + "%";
-                setSUIProperty(pid, "grid.r" + row + "c" + column, sui.PROP_TEXT, value);
-            }
-        }
-        subscribeToSUIEvent(pid, sui_event_type.SET_onButton, "btnLaunch", "handleMiningResourceConfirm");
-        subscribeToSUIEvent(pid, sui_event_type.SET_onButton, "btnCancel", "handleMiningResourceCancel");
-        showSUIPage(pid);
-        flushSUIPage(pid);
-    }
-
-    public int handleMiningResourceCancel(obj_id self, dictionary params) throws InterruptedException
-    {
-        cleanScriptVars(self);
-        destroyObject(self);
-        return SCRIPT_CONTINUE;
-    }
-
-    public String getMiningSurveyMapResource(String planet) throws InterruptedException
-    {
-        if (planet.equals("mustafar"))
-        {
-            return "ui_map_mustafar";
-        }
-        if (planet.equals("kashyyyk_dead_forest"))
-        {
-            return "ui_map_kashyyyk_dead_forest";
-        }
-        if (planet.equals("kashyyyk_hunting"))
-        {
-            return "ui_map_kashyyyk_hunting";
-        }
-        return "ui_map_kashyyyk_main";
+        String prompt = "Launch the Planetary Mining Droid for " + getLocalizedResourceName(resourceType) + " at " + Math.round(activeResource.getDensity() * 100) + "% concentration at (" + Math.round(selectedSite.x) + ", " + Math.round(selectedSite.z) + ")?";
+        sui.msgbox(self, player, prompt, sui.OK_CANCEL, "Planetary Mining Droid", "handleMiningResourceConfirm");
     }
 
     public boolean isListSelectionValid(dictionary params) throws InterruptedException
@@ -526,11 +482,6 @@ public class planetary_mining extends script.base_script
             }
         }
         return names;
-    }
-
-    public String getLocalizedResourceClassName(String resourceClass) throws InterruptedException
-    {
-        return utils.localizeSIDString(getResourceClassName(resourceClass));
     }
 
     public String getLocalizedResourceName(obj_id resourceType) throws InterruptedException
