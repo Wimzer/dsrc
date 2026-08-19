@@ -20,7 +20,7 @@ slots = [
 	[name = "craft_droid_ingredients_n" "command_interpreter", hardpoint = ""],
 	[name = "craft_droid_ingredients_n" "navigation_control_circuit", hardpoint = ""]]
 
-craftedSharedTemplate="object/tangible/component/droid/shared_droid_interplanetary_survey.iff"
+craftedSharedTemplate="object/tangible/component/droid/shared_planetary_mining_droid.iff"
 
 @class intangible_object_template 0
 

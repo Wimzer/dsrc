@@ -14140,6 +14140,25 @@ public class base_class
         return _ret_obj_id;
     }
     /**
+     * Returns the non-depleted resource types available on the location's planet for a resource class.
+     * @param loc A world location whose scene identifies the planet
+     * @param resourceClass The base resource class for resources to return
+     * @return available resource type ids, or null on error
+     */
+    private static native long[] _getAvailablePmdResourceTypes(location loc, String resourceClass);
+    public static obj_id[] getAvailablePmdResourceTypes(location loc, String resourceClass)
+    {
+        long[] _ret_long = _getAvailablePmdResourceTypes(loc, resourceClass);
+        obj_id[] _ret_obj_id = null;
+        if (_ret_long != null)
+        {
+            _ret_obj_id = new obj_id[_ret_long.length];
+            for (int _i = 0; _i < _ret_long.length; ++_i)
+                _ret_obj_id[_i] = getObjIdWithNull(_ret_long[_i]);
+        }
+        return _ret_obj_id;
+    }
+    /**
      * Returns the resource class for a given resource type.
      * @param resourceType The resource type id
      * @return the resource class name, or null on error
