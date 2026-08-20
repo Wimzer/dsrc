@@ -17577,6 +17577,7 @@
 				recklessShot_1='recklessShot'
 				recklessShot_2='recklessShot'
 				reply='sysGroup'
+				returnPlanetaryMiningDroid='droid_stay'
 				rescue='dragPlayer'
 				restrainingShot_1='restrainingShot'
 				rodian_ability_1='rodian_ability'

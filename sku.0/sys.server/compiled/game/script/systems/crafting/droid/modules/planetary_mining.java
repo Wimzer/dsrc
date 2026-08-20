@@ -70,7 +70,7 @@ public class planetary_mining extends script.base_script
     public static final String VAR_PENDING_LAUNCH_ITEM = "planetary_mining.pending_launch_item";
     public static final String VAR_PENDING_LAUNCH_OPERATION = "planetary_mining.pending_launch_operation";
     public static final String VAR_JOB_SEQUENCE = "planetary_mining.job_sequence";
-    public static final String VAR_ACTIVE_JOB_SEQUENCE = "planetary_mining.active_job_sequence";
+    public static final String VAR_ACTIVE_JOB_SEQUENCE = resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE;
     public static final String VAR_PENDING_RELEASE_SEQUENCES = "planetary_mining.pending_release_sequences";
     public static final String VAR_RELEASE_IN_FLIGHT = "planetary_mining.release_in_flight";
     public static final String VAR_LAUNCH_AMOUNT = "planetary_mining.launch_amount";
@@ -551,14 +551,29 @@ public class planetary_mining extends script.base_script
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
+        int miningDuration = getMiningTime(self);
         setObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE, 1);
-        dictionary data = new dictionary();
-        data.put("resourceType", resourceType);
-        data.put("amount", amount);
-        data.put("jobSequence", jobSequence);
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE, resourceType);
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT, amount);
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT, getCalendarTime());
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION, miningDuration);
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED, 0);
         setObjVar(player, VAR_ACTIVE_JOB_SEQUENCE, jobSequence);
+        dictionary data = new dictionary();
+        data.put("jobSequence", jobSequence);
         clearPendingLaunch(player, operationId);
-        messageTo(player, "handlePlanetaryMiningDroidReturn", data, getMiningTime(self), true);
+        if (!messageTo(player, "handlePlanetaryMiningDroidReturn", data, miningDuration, true))
+        {
+            queuePlanetaryMiningDroidRelease(player, jobSequence);
+            removeObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB);
+            removeObjVar(player, VAR_ACTIVE_JOB_SEQUENCE);
+            removeObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE);
+            buff.removeBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE);
+            cleanScriptVars(self);
+            sendSystemMessage(player, "The Interplanetary Mining Droid could not schedule its expedition.", null);
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED, 1);
         cleanScriptVars(self);
         consumeCharge(self);
         sendSystemMessage(player, "Your droid has departed on its expedition.", null);
@@ -576,9 +591,27 @@ public class planetary_mining extends script.base_script
 
     public void queuePlanetaryMiningDroidRelease(obj_id player, int jobSequence) throws InterruptedException
     {
-        dictionary data = new dictionary();
-        data.put("jobSequence", jobSequence);
-        messageTo(player, "queuePlanetaryMiningDroidRelease", data, 0.0f, true);
+        if (jobSequence < 1)
+        {
+            return;
+        }
+        int[] pendingReleases = hasObjVar(player, VAR_PENDING_RELEASE_SEQUENCES) ? getIntArrayObjVar(player, VAR_PENDING_RELEASE_SEQUENCES) : new int[0];
+        for (int pendingRelease : pendingReleases)
+        {
+            if (pendingRelease == jobSequence)
+            {
+                messageTo(player, "retryPlanetaryMiningDroidRelease", null, 0.0f, true);
+                return;
+            }
+        }
+        int[] updatedReleases = new int[pendingReleases.length + 1];
+        for (int i = 0; i < pendingReleases.length; ++i)
+        {
+            updatedReleases[i] = pendingReleases[i];
+        }
+        updatedReleases[pendingReleases.length] = jobSequence;
+        setObjVar(player, VAR_PENDING_RELEASE_SEQUENCES, updatedReleases);
+        messageTo(player, "retryPlanetaryMiningDroidRelease", null, 0.0f, true);
     }
 
     public void showMiningResourceConfirmation(obj_id self, obj_id player, resource_density activeResource, location selectedSite) throws InterruptedException

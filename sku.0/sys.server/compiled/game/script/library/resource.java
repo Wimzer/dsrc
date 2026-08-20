@@ -25,6 +25,15 @@ public class resource extends script.base_script
     public static final String VAR_SURVEY_RANGE_VALUE = VAR_SURVEY_BASE + ".range.value";
     public static final String VAR_SAMPLE_STAMP = VAR_SURVEY_BASE + ".sample.stamp";
     public static final String VAR_PLANETARY_MINING_SURVEY_LICENSE = "planetary_mining.survey_license_occupied";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB = "planetary_mining.active_job";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE = "planetary_mining.active_job_sequence";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE = VAR_PLANETARY_MINING_ACTIVE_JOB + ".resource";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".amount";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".started_at";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION = VAR_PLANETARY_MINING_ACTIVE_JOB + ".duration";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED = VAR_PLANETARY_MINING_ACTIVE_JOB + ".scheduled";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".completion_amount";
+    public static final String VAR_PLANETARY_MINING_DELIVERY_JOB = "planetary_mining.delivery_job";
     public static final String BUFF_PLANETARY_MINING_SURVEY_LICENSE = "pmd_survey_license_occupied";
     public static final String HANDLER_SET_RANGE = "handleSetRange";
     public static final String HANDLER_SET_RESOLUTION = "handleSetResolution";

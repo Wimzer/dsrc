@@ -61,8 +61,10 @@ public class player_utility extends script.base_script
     public static final String SCRIPTVAR_PLANETARY_MINING_RELEASE_IN_FLIGHT = "planetary_mining.release_in_flight";
     public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_ITEM = "planetary_mining.pending_launch_item";
     public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_OPERATION = "planetary_mining.pending_launch_operation";
-    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE = "planetary_mining.active_job_sequence";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE = resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE;
     public static final String VAR_PLANETARY_MINING_DELIVERED_SEQUENCES = "planetary_mining.delivered_sequences";
+    public static final String SCRIPTVAR_PLANETARY_MINING_RETURN_PID = "planetary_mining.return.pid";
+    public static final String SCRIPTVAR_PLANETARY_MINING_RETURN_JOB = "planetary_mining.return.job";
     public int OnLogin(obj_id self) throws InterruptedException
     {
         if (utils.checkConfigFlag("GameServer", "jediTestResources"))
@@ -88,7 +90,32 @@ public class player_utility extends script.base_script
         int activeJobSequence = getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE);
         if (activeJobSequence > 0)
         {
-            planetaryMiningDroidAdjustAccountFeatureId(self, self, 1, "reserve:" + activeJobSequence);
+            if (hasDeliveredPlanetaryMiningDroidJob(self, activeJobSequence))
+            {
+                finishPlanetaryMiningDroidJob(self, activeJobSequence, getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT));
+            }
+            else
+            {
+                planetaryMiningDroidAdjustAccountFeatureId(self, self, 1, "reserve:" + activeJobSequence);
+                if (hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT))
+                {
+                    dictionary retryParams = new dictionary();
+                    retryParams.put("jobSequence", activeJobSequence);
+                    messageTo(self, "handlePlanetaryMiningDroidReturn", retryParams, 0.0f, true);
+                }
+                else if (hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE) && getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED) == 0)
+                {
+                    dictionary returnParams = new dictionary();
+                    returnParams.put("jobSequence", activeJobSequence);
+                    int startedAt = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT);
+                    int duration = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION);
+                    float remaining = Math.max(0, startedAt + duration - getCalendarTime());
+                    if (messageTo(self, "handlePlanetaryMiningDroidReturn", returnParams, remaining, true))
+                    {
+                        setObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED, 1);
+                    }
+                }
+            }
         }
         startPlanetaryMiningDroidRelease(self);
         if (buff.hasBuff(self, "tcg_series3_hands_of_seduction"))
@@ -1191,8 +1218,6 @@ public class player_utility extends script.base_script
     }
     public int handlePlanetaryMiningDroidReturn(obj_id self, dictionary params) throws InterruptedException
     {
-        removeObjVar(self, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE);
-        buff.removeBuff(self, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE);
         if (params == null)
         {
             sendSystemMessage(self, "The Interplanetary Mining Droid could not deliver its resources.", null);
@@ -1201,45 +1226,238 @@ public class player_utility extends script.base_script
         int jobSequence = params.getInt("jobSequence");
         if (jobSequence < 1)
         {
-            sendSystemMessage(self, "The Interplanetary Mining Droid could not deliver its resources.", null);
-            return SCRIPT_CONTINUE;
+            if (!hasObjVar(self, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) && !buff.hasBuff(self, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+            {
+                return SCRIPT_CONTINUE;
+            }
+            jobSequence = getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE);
+            if (jobSequence < 1)
+            {
+                jobSequence = getIntObjVar(self, "planetary_mining.job_sequence") + 1;
+                setObjVar(self, "planetary_mining.job_sequence", jobSequence);
+                setObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE, jobSequence);
+            }
         }
-        if (getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE) == jobSequence)
-        {
-            removeObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE);
-        }
-        enqueuePlanetaryMiningDroidRelease(self, jobSequence);
         if (hasDeliveredPlanetaryMiningDroidJob(self, jobSequence))
         {
+            if (getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE) == jobSequence)
+            {
+                finishPlanetaryMiningDroidJob(self, jobSequence, getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT));
+            }
             return SCRIPT_CONTINUE;
         }
-        obj_id resourceType = params.getObjId("resourceType");
-        int amount = params.getInt("amount");
-        if (!isIdValid(resourceType) || amount < 1)
+        if (getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE) != jobSequence)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id resourceType;
+        int amount;
+        if (hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE))
+        {
+            resourceType = getObjIdObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE);
+            if (!hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT))
+            {
+                setObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT, getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT));
+            }
+            amount = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT);
+        }
+        else
+        {
+            resourceType = params.getObjId("resourceType");
+            amount = params.getInt("amount");
+            if (isIdValid(resourceType) && amount > 0)
+            {
+                setObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE, resourceType);
+                setObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT, amount);
+                setObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT, amount);
+            }
+        }
+        if (!isIdValid(resourceType) || amount < 0 || (amount == 0 && !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT)))
         {
             sendSystemMessage(self, "The Interplanetary Mining Droid could not deliver its resources.", null);
             return SCRIPT_CONTINUE;
+        }
+        deliverPlanetaryMiningDroidJob(self, jobSequence, resourceType, amount, params);
+        return SCRIPT_CONTINUE;
+    }
+    public void deliverPlanetaryMiningDroidJob(obj_id self, int jobSequence, obj_id resourceType, int amount, dictionary retryParams) throws InterruptedException
+    {
+        if (amount == 0)
+        {
+            finishPlanetaryMiningDroidJob(self, jobSequence, amount);
+            return;
         }
         String crateTemplate = getResourceContainerForType(resourceType);
         if (crateTemplate == null || crateTemplate.equals(""))
         {
             sendSystemMessage(self, "The Interplanetary Mining Droid could not deliver its resources.", null);
-            return SCRIPT_CONTINUE;
+            messageTo(self, "handlePlanetaryMiningDroidReturn", retryParams, 60.0f, true);
+            return;
         }
-        obj_id crate = createObjectInInventoryAllowOverload(crateTemplate, self);
-        if (!isIdValid(crate) || !addResourceToContainer(crate, resourceType, amount, self))
+        obj_id crate = findPlanetaryMiningDroidDeliveryCrate(self, jobSequence);
+        if (!isIdValid(crate))
         {
+            crate = createObjectInInventoryAllowOverload(crateTemplate, self);
             if (isIdValid(crate))
             {
-                destroyObject(crate);
+                setObjVar(crate, resource.VAR_PLANETARY_MINING_DELIVERY_JOB, jobSequence);
             }
+        }
+        int deliveredAmount = isIdValid(crate) ? getResourceContainerQuantity(crate) : 0;
+        obj_id deliveredType = isIdValid(crate) ? getResourceContainerResourceType(crate) : null;
+        if (deliveredAmount > 0 && !resourceType.equals(deliveredType))
+        {
             sendSystemMessage(self, "The Interplanetary Mining Droid is still trying to deliver its resources.", null);
-            messageTo(self, "handlePlanetaryMiningDroidReturn", params, 60.0f, true);
+            messageTo(self, "handlePlanetaryMiningDroidReturn", retryParams, 60.0f, true);
+            return;
+        }
+        if (!isIdValid(crate) || deliveredAmount > amount || (deliveredAmount < amount && !addResourceToContainer(crate, resourceType, amount - deliveredAmount, self)) || getResourceContainerQuantity(crate) != amount)
+        {
+            sendSystemMessage(self, "The Interplanetary Mining Droid is still trying to deliver its resources.", null);
+            messageTo(self, "handlePlanetaryMiningDroidReturn", retryParams, 60.0f, true);
+            return;
+        }
+        finishPlanetaryMiningDroidJob(self, jobSequence, amount);
+    }
+    public obj_id findPlanetaryMiningDroidDeliveryCrate(obj_id self, int jobSequence) throws InterruptedException
+    {
+        obj_id inventory = utils.getInventoryContainer(self);
+        if (!isIdValid(inventory))
+        {
+            return null;
+        }
+        obj_id[] contents = getContents(inventory);
+        if (contents != null)
+        {
+            for (obj_id item : contents)
+            {
+                if (getIntObjVar(item, resource.VAR_PLANETARY_MINING_DELIVERY_JOB) == jobSequence)
+                {
+                    return item;
+                }
+            }
+        }
+        return null;
+    }
+    public void finishPlanetaryMiningDroidJob(obj_id self, int jobSequence, int amount) throws InterruptedException
+    {
+        boolean alreadyDelivered = hasDeliveredPlanetaryMiningDroidJob(self, jobSequence);
+        enqueuePlanetaryMiningDroidRelease(self, jobSequence);
+        if (!alreadyDelivered)
+        {
+            markPlanetaryMiningDroidJobDelivered(self, jobSequence);
+        }
+        if (getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE) == jobSequence)
+        {
+            removeObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB);
+            removeObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE);
+            removeObjVar(self, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE);
+            buff.removeBuff(self, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE);
+            clearPlanetaryMiningDroidReturnSui(self);
+        }
+        if (!alreadyDelivered)
+        {
+            sendSystemMessage(self, "The Interplanetary Mining Droid returned " + amount + " resource units.", null);
+        }
+    }
+    public int returnPlanetaryMiningDroid(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
+    {
+        if (params != null && !params.trim().equals(""))
+        {
+            sendSystemMessage(self, "The Return Planetary Mining Droid command does not accept parameters.", null);
+            return SCRIPT_OVERRIDE;
+        }
+        int jobSequence = getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE);
+        if (jobSequence < 1)
+        {
+            sendSystemMessage(self, "You do not have an active Interplanetary Mining Droid expedition.", null);
+            return SCRIPT_OVERRIDE;
+        }
+        if (!hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION))
+        {
+            sendSystemMessage(self, "This expedition predates the return command and must finish naturally.", null);
+            return SCRIPT_OVERRIDE;
+        }
+        if (hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT))
+        {
+            sendSystemMessage(self, "Your Interplanetary Mining Droid is already returning.", null);
+            return SCRIPT_OVERRIDE;
+        }
+        obj_id resourceType = getObjIdObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE);
+        int fullAmount = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT);
+        int projectedAmount = getPlanetaryMiningDroidProjectedAmount(self);
+        if (!isIdValid(resourceType) || fullAmount < 1 || projectedAmount < 0)
+        {
+            sendSystemMessage(self, "Your active Interplanetary Mining Droid expedition is invalid and must finish naturally.", null);
+            return SCRIPT_OVERRIDE;
+        }
+        clearPlanetaryMiningDroidReturnSui(self);
+        int elapsed = Math.max(0, getCalendarTime() - getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT));
+        int duration = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION);
+        String prompt = "Resource: " + utils.localizeSIDString(getResourceName(resourceType)) + "\nFrozen full yield: " + fullAmount + "\nElapsed time: " + Math.min(elapsed, duration) + " of " + duration + " seconds\nYield if returned now: " + projectedAmount + "\nForfeited remainder: " + (fullAmount - projectedAmount) + "\n\nReturn the droid now?";
+        int pid = sui.msgbox(self, self, prompt, sui.YES_NO, "Return Interplanetary Mining Droid", sui.MSG_QUESTION, "handleReturnPlanetaryMiningDroidConfirmation");
+        if (pid >= 0)
+        {
+            utils.setScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_PID, pid);
+            utils.setScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_JOB, jobSequence);
+        }
+        return SCRIPT_OVERRIDE;
+    }
+    public int handleReturnPlanetaryMiningDroidConfirmation(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || !utils.hasScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_PID) || !utils.hasScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_JOB))
+        {
             return SCRIPT_CONTINUE;
         }
-        markPlanetaryMiningDroidJobDelivered(self, jobSequence);
-        sendSystemMessage(self, "The Interplanetary Mining Droid returned " + amount + " resource units.", null);
+        int pageId = utils.getIntScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_PID);
+        int jobSequence = utils.getIntScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_JOB);
+        if (params.getInt("pageId") != pageId)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        clearPlanetaryMiningDroidReturnSui(self);
+        if (sui.getIntButtonPressed(params) != sui.BP_OK)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE) != jobSequence || hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT))
+        {
+            sendSystemMessage(self, "That Interplanetary Mining Droid expedition is no longer available to return.", null);
+            return SCRIPT_CONTINUE;
+        }
+        obj_id resourceType = getObjIdObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE);
+        int amount = getPlanetaryMiningDroidProjectedAmount(self);
+        if (!isIdValid(resourceType) || amount < 0)
+        {
+            sendSystemMessage(self, "Your active Interplanetary Mining Droid expedition is invalid and must finish naturally.", null);
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT, amount);
+        dictionary retryParams = new dictionary();
+        retryParams.put("jobSequence", jobSequence);
+        deliverPlanetaryMiningDroidJob(self, jobSequence, resourceType, amount, retryParams);
         return SCRIPT_CONTINUE;
+    }
+    public int getPlanetaryMiningDroidProjectedAmount(obj_id self) throws InterruptedException
+    {
+        int fullAmount = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT);
+        int startedAt = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT);
+        int duration = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION);
+        if (fullAmount < 1 || startedAt < 1 || duration < 1)
+        {
+            return -1;
+        }
+        int elapsed = Math.max(0, Math.min(duration, getCalendarTime() - startedAt));
+        return (int)(((long)fullAmount * elapsed) / duration);
+    }
+    public void clearPlanetaryMiningDroidReturnSui(obj_id self) throws InterruptedException
+    {
+        if (utils.hasScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_PID))
+        {
+            forceCloseSUIPage(utils.getIntScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_PID));
+            utils.removeScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_PID);
+        }
+        utils.removeScriptVar(self, SCRIPTVAR_PLANETARY_MINING_RETURN_JOB);
     }
     public int queuePlanetaryMiningDroidRelease(obj_id self, dictionary params) throws InterruptedException
     {
@@ -1306,7 +1524,7 @@ public class player_utility extends script.base_script
         if (operationId != null && operationId.equals(pendingLaunchOperation))
         {
             obj_id item = getObjIdObjVar(self, VAR_PLANETARY_MINING_PENDING_LAUNCH_ITEM);
-            if (isIdValid(item) && exists(item))
+            if (isIdValid(item) && exists(item) && utils.hasScriptVar(item, "planetary_mining.account_reservation_pending"))
             {
                 messageTo(item, "handlePlanetaryMiningDroidAccountFeatureResponse", params, 0.0f, true);
             }
@@ -1314,9 +1532,11 @@ public class player_utility extends script.base_script
             {
                 removeObjVar(self, VAR_PLANETARY_MINING_PENDING_LAUNCH_ITEM);
                 removeObjVar(self, VAR_PLANETARY_MINING_PENDING_LAUNCH_OPERATION);
-                if (params.getBoolean("success"))
+                int operationSequence = getOperationSequence(operationId);
+                boolean matchingActiveJob = getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE) == operationSequence && hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE);
+                if (params.getBoolean("success") && !matchingActiveJob)
                 {
-                    enqueuePlanetaryMiningDroidRelease(self, getOperationSequence(operationId));
+                    enqueuePlanetaryMiningDroidRelease(self, operationSequence);
                 }
             }
             return SCRIPT_CONTINUE;
