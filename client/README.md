@@ -1,4 +1,4 @@
-# Planetary Mining Droid Client Files
+# Interplanetary Mining Droid Client Files
 
 Install the contents of this directory as loose files at the client root, preserving each relative path.
 

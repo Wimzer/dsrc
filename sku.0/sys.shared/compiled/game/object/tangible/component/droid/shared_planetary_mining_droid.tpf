@@ -8,9 +8,9 @@
 
 @class object_template 5
 
-objectName = "item_n" "interplanetary_survey_droid"
-detailedDescription = "item_n" "interplanetary_survey_droid"
-lookAtText = "item_n" "interplanetary_survey_droid"
+objectName = "planetary_mining_droid" "planetary_mining_droid"
+detailedDescription = "planetary_mining_droid" "planetary_mining_droid"
+lookAtText = "planetary_mining_droid" "planetary_mining_droid"
 
 snapToTerrain = true
 containerType = CT_none

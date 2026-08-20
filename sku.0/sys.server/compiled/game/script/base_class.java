@@ -25967,10 +25967,10 @@ public class base_class
     {
         _adjustSwgTcgAccountFeatureId(getLongWithNull(player), getLongWithNull(item), featureId, adjustment);
     }
-    private static native boolean _planetaryMiningDroidAdjustAccountFeatureId(long player, long callbackTarget, int adjustment);
-    public static boolean planetaryMiningDroidAdjustAccountFeatureId(obj_id player, obj_id callbackTarget, int adjustment)
+    private static native boolean _planetaryMiningDroidAdjustAccountFeatureId(long player, long callbackTarget, int adjustment, String operationId);
+    public static boolean planetaryMiningDroidAdjustAccountFeatureId(obj_id player, obj_id callbackTarget, int adjustment, String operationId)
     {
-        return _planetaryMiningDroidAdjustAccountFeatureId(getLongWithNull(player), getLongWithNull(callbackTarget), adjustment);
+        return _planetaryMiningDroidAdjustAccountFeatureId(getLongWithNull(player), getLongWithNull(callbackTarget), adjustment, operationId);
     }
     public static native String veteranGetEventAnnouncement(String event);
     public static native String veteranGetEventDescription(String event);

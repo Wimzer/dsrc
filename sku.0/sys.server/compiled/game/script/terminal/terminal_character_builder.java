@@ -1291,7 +1291,7 @@ public class terminal_character_builder extends script.base_script
         "Increase Factory Speed",
         "Torrent of the Force Drink",
         "Bespin Port (x10)",
-        "Planetary Mining Droid"
+        "Interplanetary Mining Droid"
     };
     public static final String[] MEDICINE_OPTIONS =
     {
@@ -8263,7 +8263,7 @@ public class terminal_character_builder extends script.base_script
                 break;
             case 19:
                 static_item.createNewItemFunction("item_planetary_mining_droid", pInv);
-                sendSystemMessageTestingOnly(player, "Planetary Mining Droid issued.");
+                sendSystemMessageTestingOnly(player, "Interplanetary Mining Droid issued.");
                 break;
             default:
                 cleanScriptVars(player);

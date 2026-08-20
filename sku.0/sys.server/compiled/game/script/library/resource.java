@@ -387,7 +387,7 @@ public class resource extends script.base_script
         }
         if (hasObjVar(user, VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(user, BUFF_PLANETARY_MINING_SURVEY_LICENSE))
         {
-            sendSystemMessage(user, "Your Survey License is occupied by an active Planetary Mining Droid.", null);
+            sendSystemMessage(user, "Your Survey License is occupied by an active Interplanetary Mining Droid.", null);
             return SAMPLE_STOP_LOOP;
         }
         obj_id typeId = getResourceTypeByName(type);

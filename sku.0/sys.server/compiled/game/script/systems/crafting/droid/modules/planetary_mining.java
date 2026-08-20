@@ -150,7 +150,9 @@ public class planetary_mining extends script.base_script
     public static final float[][][] KASHYYYK_HUNTING_SURVEY_REGIONS =
     {
         { { 663.774f, 683.964f }, { 572.027f, 604.401f }, { 560.897f, 575.982f }, { 533.957f, 571.992f }, { 480.129f, 527.996f }, { 443.983f, 595.993f }, { 325.079f, 643.998f }, { 243.990f, 632.000f }, { 175.982f, 627.981f }, { 156.020f, 610.950f }, { 138.305f, 595.990f }, { 104.012f, 607.991f }, { 80.005f, 556.011f }, { 112.017f, 503.994f }, { 88.021f, 451.999f }, { 72.011f, 425.144f }, { 118.475f, 372.003f }, { 151.988f, 380.011f }, { 163.998f, 404.002f }, { 206.876f, 436.009f }, { 264.001f, 404.023f }, { 355.999f, 408.005f }, { 392.246f, 436.001f }, { 519.999f, 456.036f }, { 599.998f, 504.012f }, { 607.579f, 554.736f }, { 631.775f, 616.279f }, { 671.999f, 665.856f } },
-        { { 82.090f, 427.248f }, { -13.151f, 382.413f }, { -44.004f, 389.265f }, { -52.035f, 431.985f }, { -97.912f, 447.998f }, { -128.015f, 485.012f }, { -128.000f, 543.972f }, { -148.005f, 554.119f }, { -136.027f, 572.453f }, { -98.616f, 588.001f }, { -75.975f, 568.080f }, { -99.979f, 555.989f }, { -95.998f, 532.011f }, { -56.010f, 532.005f }, { -40.002f, 560.002f }, { -80.008f, 615.968f }, { -76.000f, 651.996f }, { -118.950f, 679.990f }, { -236.012f, 695.998f }, { -315.997f, 691.982f }, { -318.035f, 635.995f }, { -364.011f, 655.993f }, { -376.004f, 729.747f }, { -352.023f, 791.992f }, { -392.011f, 836.019f }, { -364.000f, 875.999f }, { -435.982f, 903.986f }, { -504.611f, 867.998f }, { -512.001f, 915.981f }, { -607.077f, 947.981f }, { -659.992f, 915.992f }, { -655.965f, 844.049f }, { -592.004f, 828.006f }, { -568.005f, 848.011f }, { -543.995f, 852.020f }, { -543.994f, 831.995f }, { -579.993f, 787.994f }, { -671.987f, 811.991f }, { -687.944f, 780.002f }, { -647.986f, 740.001f }, { -584.776f, 648.001f }, { -463.931f, 482.905f }, { -543.981f, 193.431f }, { -439.992f, 36.011f }, { -407.980f, -87.969f }, { -180.002f, -103.956f }, { -155.017f, -67.998f }, { 146.239f, 104.027f }, { 112.777f, 267.966f }, { 35.983f, 309.786f }, { 133.369f, 384.381f } }
+        { { 82.090f, 427.248f }, { -13.151f, 382.413f }, { -44.004f, 389.265f }, { -52.035f, 431.985f }, { -97.912f, 447.998f }, { -128.015f, 485.012f }, { -128.000f, 543.972f }, { -148.005f, 554.119f }, { -136.027f, 572.453f }, { -98.616f, 588.001f }, { -75.975f, 568.080f }, { -99.979f, 555.989f }, { -95.998f, 532.011f }, { -56.010f, 532.005f }, { -40.002f, 560.002f }, { -80.008f, 615.968f }, { -76.000f, 651.996f }, { -118.950f, 679.990f }, { -236.012f, 695.998f }, { -315.997f, 691.982f }, { -318.035f, 635.995f }, { -364.011f, 655.993f }, { -376.004f, 729.747f }, { -352.023f, 791.992f }, { -392.011f, 836.019f }, { -364.000f, 875.999f }, { -435.982f, 903.986f }, { -504.611f, 867.998f }, { -512.001f, 915.981f }, { -607.077f, 947.981f }, { -659.992f, 915.992f }, { -655.965f, 844.049f }, { -592.004f, 828.006f }, { -568.005f, 848.011f }, { -543.995f, 852.020f }, { -543.994f, 831.995f }, { -579.993f, 787.994f }, { -671.987f, 811.991f }, { -687.944f, 780.002f }, { -647.986f, 740.001f }, { -584.776f, 648.001f }, { -463.931f, 482.905f }, { -543.981f, 193.431f }, { -439.992f, 36.011f }, { -407.980f, -87.969f }, { -180.002f, -103.956f }, { -155.017f, -67.998f }, { 146.239f, 104.027f }, { 112.777f, 267.966f }, { 35.983f, 309.786f }, { 133.369f, 384.381f } },
+        { { 168.971f, 164.249f }, { 215.535f, 124.722f }, { 295.176f, 176.280f }, { 435.990f, 20.753f }, { 412.865f, -38.870f }, { 516.220f, -81.225f }, { 668.011f, 113.528f }, { 703.261f, 113.909f }, { 753.204f, 146.063f }, { 759.532f, 183.664f }, { 801.894f, 253.370f }, { 868.111f, 273.157f }, { 877.904f, 297.657f }, { 861.362f, 371.976f }, { 899.998f, 415.983f }, { 896.042f, 334.221f }, { 927.617f, 331.562f }, { 960.003f, 438.114f }, { 940.700f, 507.522f }, { 1028.700f, 599.960f }, { 1100.180f, 615.993f }, { 1139.970f, 568.022f }, { 1089.146f, 524.641f }, { 1047.984f, 475.572f }, { 1065.917f, 431.899f }, { 1058.168f, 383.270f }, { 1095.993f, 395.987f }, { 963.646f, 274.958f }, { 840.942f, 135.732f }, { 1017.792f, 225.218f }, { 1104.200f, 202.748f }, { 1107.984f, 133.702f }, { 932.012f, 112.012f }, { 915.999f, 72.001f }, { 743.084f, -25.110f }, { 776.680f, -71.753f }, { 819.970f, -93.903f }, { 749.285f, -89.447f }, { 705.113f, -121.665f }, { 743.990f, -144.000f }, { 728.265f, -159.997f }, { 678.409f, -156.949f }, { 573.849f, -197.077f }, { 522.241f, -171.986f }, { 504.316f, -176.184f }, { 463.975f, -262.957f }, { 413.561f, -320.627f }, { 371.820f, -338.739f }, { 365.658f, -365.955f }, { 330.613f, -402.550f }, { 232.802f, -306.757f }, { 235.993f, -280.018f }, { 259.279f, -240.121f }, { 211.871f, -141.789f }, { 192.641f, -134.069f }, { 194.955f, -91.518f }, { 131.993f, -63.012f }, { 38.225f, -66.324f }, { 25.975f, -29.205f }, { 34.977f, 5.603f }, { 166.223f, 73.202f }, { 115.574f, 94.919f } },
+        { { 418.355f, -299.350f }, { 422.033f, -327.646f }, { 468.169f, -356.326f }, { 603.986f, -340.001f }, { 692.005f, -329.419f }, { 701.397f, -316.084f }, { 734.657f, -346.059f }, { 792.849f, -336.046f }, { 816.083f, -316.031f }, { 875.132f, -336.001f }, { 960.000f, -350.617f }, { 960.000f, -348.142f }, { 1056.536f, -356.478f }, { 1175.982f, -363.677f }, { 1191.220f, -388.001f }, { 1247.986f, -404.005f }, { 1263.996f, -451.482f }, { 1291.997f, -473.786f }, { 1267.994f, -539.989f }, { 1219.992f, -595.980f }, { 1183.986f, -603.979f }, { 1117.113f, -647.985f }, { 1032.005f, -655.989f }, { 965.206f, -595.299f }, { 896.010f, -531.995f }, { 791.449f, -499.975f }, { 795.996f, -583.998f }, { 729.987f, -627.216f }, { 688.025f, -643.995f }, { 672.000f, -596.021f }, { 689.869f, -581.130f }, { 739.456f, -581.855f }, { 768.562f, -565.739f }, { 767.754f, -527.424f }, { 651.510f, -489.634f }, { 647.995f, -539.996f }, { 571.288f, -580.432f }, { 534.663f, -615.998f }, { 500.004f, -548.053f }, { 485.017f, -532.304f }, { 372.003f, -507.350f }, { 352.125f, -444.415f }, { 315.211f, -430.033f }, { 296.004f, -451.991f }, { 285.095f, -436.951f }, { 211.650f, -435.683f }, { 187.171f, -430.886f }, { 101.564f, -352.032f }, { 148.001f, -316.001f }, { 176.809f, -338.233f }, { 226.178f, -357.329f }, { 233.241f, -293.184f }, { 258.263f, -258.661f }, { 343.196f, -247.435f } }
     };
     public static final String[] RESOURCE_CLASSES =
     {
@@ -184,6 +186,20 @@ public class planetary_mining extends script.base_script
     public static final String VAR_RESOURCE_TYPE = "planetary_mining.resource_type";
     public static final String VAR_SURVEY_SELECTED = "planetary_mining.survey_selected";
     public static final String VAR_ACCOUNT_RESERVATION_PENDING = "planetary_mining.account_reservation_pending";
+    public static final String VAR_FLOW_PLAYER = "planetary_mining.flow.player";
+    public static final String VAR_FLOW_ITEM = "planetary_mining.flow.item";
+    public static final String VAR_FLOW_PID = "planetary_mining.flow.pid";
+    public static final String VAR_LAUNCH_COUNTDOWN = "planetary_mining.launch_countdown";
+    public static final String VAR_PENDING_LAUNCH_ITEM = "planetary_mining.pending_launch_item";
+    public static final String VAR_PENDING_LAUNCH_OPERATION = "planetary_mining.pending_launch_operation";
+    public static final String VAR_JOB_SEQUENCE = "planetary_mining.job_sequence";
+    public static final String VAR_ACTIVE_JOB_SEQUENCE = "planetary_mining.active_job_sequence";
+    public static final String VAR_PENDING_RELEASE_SEQUENCES = "planetary_mining.pending_release_sequences";
+    public static final String VAR_RELEASE_IN_FLIGHT = "planetary_mining.release_in_flight";
+    public static final String VAR_LAUNCH_AMOUNT = "planetary_mining.launch_amount";
+    public static final String VAR_LAUNCH_JOB_SEQUENCE = "planetary_mining.launch_job_sequence";
+    public static final String PID_NAME = "planetaryMiningDroid";
+    public static final String DISPLAY_NAME = "Interplanetary Mining Droid";
     public static final String ATTRIBUTE_BASE = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
     public static final String LEGACY_STATIC_ATTRIBUTE_BASE = "crafting.component_attribute.";
     public static final String ATTRIBUTE_EXTRACTION_RATE = ATTRIBUTE_BASE + "extractRate";
@@ -198,8 +214,19 @@ public class planetary_mining extends script.base_script
 
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        setName(self, "Planetary Mining Droid");
+        setName(self, DISPLAY_NAME);
         return SCRIPT_CONTINUE;
+    }
+
+    public int OnDestroy(obj_id self) throws InterruptedException
+    {
+        cleanScriptVars(self);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int OnAboutToBeTransferred(obj_id self, obj_id destination, obj_id transferer) throws InterruptedException
+    {
+        return utils.hasScriptVar(self, VAR_FLOW_PLAYER) ? SCRIPT_OVERRIDE : SCRIPT_CONTINUE;
     }
 
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
@@ -231,7 +258,7 @@ public class planetary_mining extends script.base_script
         }
         if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
         {
-            sendSystemMessage(player, "Your Survey License is occupied by an active Planetary Mining Droid.", null);
+            sendSystemMessage(player, "Your Survey License is occupied by an active Interplanetary Mining Droid.", null);
             return SCRIPT_CONTINUE;
         }
         if (getTopMostContainer(player) != player)
@@ -239,19 +266,29 @@ public class planetary_mining extends script.base_script
             sendSystemMessage(player, "You must be outdoors to launch this droid.", null);
             return SCRIPT_OVERRIDE;
         }
-        sui.listbox(self, player, "Select the planet to mine.", sui.OK_CANCEL, "Planetary Mining Droid", PLANET_NAMES, "handleMiningPlanetSelection");
+        if (!beginFlow(self, player))
+        {
+            sendSystemMessage(player, "An Interplanetary Mining Droid interface is already active.", null);
+            return SCRIPT_CONTINUE;
+        }
+        trackSui(self, player, sui.listbox(self, player, "Select the planet to mine.", sui.OK_CANCEL, DISPLAY_NAME, PLANET_NAMES, "handleMiningPlanetSelection"));
         return SCRIPT_CONTINUE;
     }
 
     public int handleMiningPlanetSelection(obj_id self, dictionary params) throws InterruptedException
     {
+        obj_id player = params == null ? obj_id.NULL_ID : sui.getPlayerId(params);
+        if (!isCurrentSui(self, player, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        clearTrackedSui(self, player);
         if (!isListSelectionValid(params))
         {
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
         int index = sui.getListboxSelectedRow(params);
-        obj_id player = sui.getPlayerId(params);
         if (!isEligibleMiningDroidUser(self, player) || index < 0 || index >= PLANET_INTERNAL.length)
         {
             cleanScriptVars(self);
@@ -259,7 +296,7 @@ public class planetary_mining extends script.base_script
         }
         if (index == 0)
         {
-            sui.listbox(self, player, "Select the Kashyyyk scene to survey.", sui.OK_CANCEL, "Planetary Mining Droid", KASHYYYK_SCENE_NAMES, "handleMiningKashyyykSceneSelection");
+            trackSui(self, player, sui.listbox(self, player, "Select the Kashyyyk scene to survey.", sui.OK_CANCEL, DISPLAY_NAME, KASHYYYK_SCENE_NAMES, "handleMiningKashyyykSceneSelection"));
             return SCRIPT_CONTINUE;
         }
         utils.setScriptVar(self, VAR_PLANET, PLANET_INTERNAL[index]);
@@ -269,6 +306,12 @@ public class planetary_mining extends script.base_script
 
     public int handleMiningKashyyykSceneSelection(obj_id self, dictionary params) throws InterruptedException
     {
+        obj_id player = params == null ? obj_id.NULL_ID : sui.getPlayerId(params);
+        if (!isCurrentSui(self, player, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        clearTrackedSui(self, player);
         if (!isListSelectionValid(params))
         {
             cleanScriptVars(self);
@@ -280,7 +323,6 @@ public class planetary_mining extends script.base_script
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        obj_id player = sui.getPlayerId(params);
         if (!isEligibleMiningDroidUser(self, player))
         {
             cleanScriptVars(self);
@@ -293,17 +335,22 @@ public class planetary_mining extends script.base_script
 
     public void promptForMiningCoordinates(obj_id self, obj_id player) throws InterruptedException
     {
-        sui.inputbox(self, player, "Enter X, Z or X, Y, Z. You may paste /waypoint coordinates.", sui.OK_CANCEL, "Planetary Mining Droid", sui.INPUT_NORMAL, null, "handleMiningCoordinates", null);
+        trackSui(self, player, sui.inputbox(self, player, "Enter X, Z or X, Y, Z. You may paste /waypoint coordinates.", sui.OK_CANCEL, DISPLAY_NAME, sui.INPUT_NORMAL, null, "handleMiningCoordinates", null));
     }
 
     public int handleMiningCoordinates(obj_id self, dictionary params) throws InterruptedException
     {
+        obj_id player = params == null ? obj_id.NULL_ID : sui.getPlayerId(params);
+        if (!isCurrentSui(self, player, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        clearTrackedSui(self, player);
         if (params == null || params.isEmpty() || sui.getIntButtonPressed(params) == sui.BP_CANCEL)
         {
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        obj_id player = sui.getPlayerId(params);
         if (!isEligibleMiningDroidUser(self, player))
         {
             cleanScriptVars(self);
@@ -415,18 +462,23 @@ public class planetary_mining extends script.base_script
         availableClasses.toArray(resourceClasses);
         availableClassNames.toArray(resourceClassNames);
         utils.setScriptVar(self, VAR_RESOURCE_CLASS, resourceClasses);
-        sui.listbox(self, player, "Select a survey type.", sui.OK_CANCEL, "Planetary Mining Droid", resourceClassNames, "handleMiningClassSelection");
+        trackSui(self, player, sui.listbox(self, player, "Select a survey type.", sui.OK_CANCEL, DISPLAY_NAME, resourceClassNames, "handleMiningClassSelection"));
         return SCRIPT_CONTINUE;
     }
 
     public int handleMiningClassSelection(obj_id self, dictionary params) throws InterruptedException
     {
+        obj_id player = params == null ? obj_id.NULL_ID : sui.getPlayerId(params);
+        if (!isCurrentSui(self, player, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        clearTrackedSui(self, player);
         if (!isListSelectionValid(params))
         {
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        obj_id player = sui.getPlayerId(params);
         if (!isEligibleMiningDroidUser(self, player))
         {
             cleanScriptVars(self);
@@ -454,12 +506,17 @@ public class planetary_mining extends script.base_script
 
     public int handleMiningResourceConfirm(obj_id self, dictionary params) throws InterruptedException
     {
+        obj_id player = params == null ? obj_id.NULL_ID : sui.getPlayerId(params);
+        if (!isCurrentSui(self, player, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        clearTrackedSui(self, player);
         if (params == null || params.isEmpty())
         {
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        obj_id player = sui.getPlayerId(params);
         if (sui.getIntButtonPressed(params) == sui.BP_CANCEL)
         {
             utils.removeScriptVar(self, VAR_RESOURCE_TYPE);
@@ -479,13 +536,54 @@ public class planetary_mining extends script.base_script
         }
         if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
         {
-            sendSystemMessage(player, "Your Survey License is occupied by an active Planetary Mining Droid.", null);
+            sendSystemMessage(player, "Your Survey License is occupied by an active Interplanetary Mining Droid.", null);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
         if (!utils.isNestedWithin(self, player) || !isSelectedResourceAvailable(self, resourceType))
         {
             sendSystemMessage(player, "That resource is no longer active on the selected planet.", null);
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        if (utils.hasScriptVar(self, VAR_LAUNCH_COUNTDOWN) || utils.hasScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        utils.setScriptVar(self, VAR_LAUNCH_COUNTDOWN, 3);
+        sendSystemMessage(player, "3", null);
+        dictionary countdown = new dictionary();
+        countdown.put("step", 2);
+        messageTo(self, "handlePlanetaryMiningDroidLaunchCountdown", countdown, 1.0f, false);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int handlePlanetaryMiningDroidLaunchCountdown(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = utils.getObjIdScriptVar(self, VAR_FLOW_PLAYER);
+        if (!isEligibleMiningDroidUser(self, player) || params == null || !utils.hasScriptVar(self, VAR_LAUNCH_COUNTDOWN))
+        {
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        int step = params.getInt("step");
+        if (step > 0)
+        {
+            utils.setScriptVar(self, VAR_LAUNCH_COUNTDOWN, step);
+            sendSystemMessage(player, Integer.toString(step), null);
+            dictionary countdown = new dictionary();
+            countdown.put("step", step - 1);
+            messageTo(self, "handlePlanetaryMiningDroidLaunchCountdown", countdown, 1.0f, false);
+            return SCRIPT_CONTINUE;
+        }
+
+        utils.removeScriptVar(self, VAR_LAUNCH_COUNTDOWN);
+        obj_id resourceType = utils.getObjIdScriptVar(self, VAR_RESOURCE_TYPE);
+        String planet = utils.getStringScriptVar(self, VAR_PLANET);
+        location surveyLocation = utils.getLocationScriptVar(self, VAR_SURVEY_LOCATION);
+        if (!isAllowedSurveyGrid(planet, surveyLocation) || !isSelectedResourceAvailable(self, resourceType))
+        {
+            sendSystemMessage(player, "Your droid can no longer find the resource.", null);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
@@ -496,19 +594,28 @@ public class planetary_mining extends script.base_script
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-
-        if (utils.hasScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING))
+        utils.setScriptVar(self, VAR_LAUNCH_AMOUNT, amount);
+        if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
         {
+            sendSystemMessage(player, "Your Survey License is occupied by an active Interplanetary Mining Droid.", null);
+            cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        if (!planetaryMiningDroidAdjustAccountFeatureId(player, self, 1))
+        int jobSequence = getIntObjVar(player, VAR_JOB_SEQUENCE) + 1;
+        setObjVar(player, VAR_JOB_SEQUENCE, jobSequence);
+        String operationId = "reserve:" + jobSequence;
+        setObjVar(player, VAR_PENDING_LAUNCH_ITEM, self);
+        setObjVar(player, VAR_PENDING_LAUNCH_OPERATION, operationId);
+        utils.setScriptVar(self, VAR_LAUNCH_JOB_SEQUENCE, jobSequence);
+        if (!planetaryMiningDroidAdjustAccountFeatureId(player, player, 1, operationId))
         {
-            sendSystemMessage(player, "The Planetary Mining Droid could not reserve an account mining slot.", null);
+            clearPendingLaunch(player, operationId);
+            sendSystemMessage(player, "The Interplanetary Mining Droid could not reserve an account mining slot.", null);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
         utils.setScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING, 1);
-        sendSystemMessage(player, "Reserving a planetary mining slot...", null);
+        sendSystemMessage(player, "Reserving an interplanetary mining slot...", null);
         return SCRIPT_CONTINUE;
     }
 
@@ -519,20 +626,28 @@ public class planetary_mining extends script.base_script
             return SCRIPT_CONTINUE;
         }
         utils.removeScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING);
-        obj_id player = utils.getContainingPlayer(self);
+        obj_id player = utils.getObjIdScriptVar(self, VAR_FLOW_PLAYER);
+        int jobSequence = utils.getIntScriptVar(self, VAR_LAUNCH_JOB_SEQUENCE);
+        String operationId = "reserve:" + jobSequence;
+        if (params == null || !operationId.equals(params.getString("operationId")))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (params == null || !params.getBoolean("success") || !isIdValid(player))
         {
             if (isIdValid(player))
             {
-                sendSystemMessage(player, "This account already has three active Planetary Mining Droid jobs.", null);
+                clearPendingLaunch(player, operationId);
+                sendSystemMessage(player, "This account already has three active Interplanetary Mining Droid jobs.", null);
             }
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
         if (params.getInt("newValue") > 3)
         {
-            planetaryMiningDroidAdjustAccountFeatureId(player, player, -1);
-            sendSystemMessage(player, "This account already has three active Planetary Mining Droid jobs.", null);
+            clearPendingLaunch(player, operationId);
+            queuePlanetaryMiningDroidRelease(player, jobSequence);
+            sendSystemMessage(player, "This account already has three active Interplanetary Mining Droid jobs.", null);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
@@ -541,27 +656,56 @@ public class planetary_mining extends script.base_script
         location surveyLocation = utils.getLocationScriptVar(self, VAR_SURVEY_LOCATION);
         if (!isEligibleMiningDroidUser(self, player) || !isAllowedSurveyGrid(planet, surveyLocation) || !isSelectedResourceAvailable(self, resourceType))
         {
-            planetaryMiningDroidAdjustAccountFeatureId(player, player, -1);
-            sendSystemMessage(player, "That resource is no longer active on the selected planet.", null);
+            clearPendingLaunch(player, operationId);
+            queuePlanetaryMiningDroidRelease(player, jobSequence);
+            sendSystemMessage(player, "Your droid can no longer find the resource.", null);
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
+        int amount = utils.getIntScriptVar(self, VAR_LAUNCH_AMOUNT);
+        if (amount < 1)
+        {
+            clearPendingLaunch(player, operationId);
+            queuePlanetaryMiningDroidRelease(player, jobSequence);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
         if (!buff.applyBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE, getMiningTime(self)))
         {
-            planetaryMiningDroidAdjustAccountFeatureId(player, player, -1);
-            sendSystemMessage(player, "The Planetary Mining Droid could not occupy your Survey License.", null);
+            clearPendingLaunch(player, operationId);
+            queuePlanetaryMiningDroidRelease(player, jobSequence);
+            sendSystemMessage(player, "The Interplanetary Mining Droid could not occupy your Survey License.", null);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
         setObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE, 1);
         dictionary data = new dictionary();
         data.put("resourceType", resourceType);
-        data.put("amount", getMiningAmount(self, player));
+        data.put("amount", amount);
+        data.put("jobSequence", jobSequence);
+        setObjVar(player, VAR_ACTIVE_JOB_SEQUENCE, jobSequence);
+        clearPendingLaunch(player, operationId);
         messageTo(player, "handlePlanetaryMiningDroidReturn", data, getMiningTime(self), true);
-        consumeCharge(self);
-        sendSystemMessage(player, "The Planetary Mining Droid has been launched.", null);
         cleanScriptVars(self);
+        consumeCharge(self);
+        sendSystemMessage(player, "Your droid has departed on its expedition.", null);
         return SCRIPT_CONTINUE;
+    }
+
+    public void clearPendingLaunch(obj_id player, String operationId) throws InterruptedException
+    {
+        if (operationId.equals(getStringObjVar(player, VAR_PENDING_LAUNCH_OPERATION)))
+        {
+            removeObjVar(player, VAR_PENDING_LAUNCH_ITEM);
+            removeObjVar(player, VAR_PENDING_LAUNCH_OPERATION);
+        }
+    }
+
+    public void queuePlanetaryMiningDroidRelease(obj_id player, int jobSequence) throws InterruptedException
+    {
+        dictionary data = new dictionary();
+        data.put("jobSequence", jobSequence);
+        messageTo(player, "queuePlanetaryMiningDroidRelease", data, 0.0f, true);
     }
 
     public void showMiningResourceConfirmation(obj_id self, obj_id player, resource_density activeResource, location selectedSite) throws InterruptedException
@@ -593,15 +737,20 @@ public class planetary_mining extends script.base_script
                 prompt.append("\n").append(localize(new string_id("obj_attr_n", resourceAttribute.getName()))).append(": ").append(resourceAttribute.getValue());
             }
         }
-        prompt.append("\n\nLaunch the Planetary Mining Droid?");
+        prompt.append("\n\nLaunch the Interplanetary Mining Droid?");
         int pid = sui.createSUIPage(sui.SUI_MSGBOX, self, player, "handleMiningResourceConfirm");
         if (pid >= 0)
         {
-            sui.setSUIProperty(pid, sui.MSGBOX_TITLE, sui.PROP_TEXT, "Planetary Mining Droid");
+            sui.setSUIProperty(pid, sui.MSGBOX_TITLE, sui.PROP_TEXT, DISPLAY_NAME);
             sui.setSUIProperty(pid, sui.MSGBOX_PROMPT, sui.PROP_TEXT, prompt.toString());
             sui.msgboxButtonSetup(pid, sui.OK_CANCEL);
             sui.setSUIProperty(pid, sui.MSGBOX_BTN_CANCEL, sui.PROP_TEXT, "@back");
             sui.showSUIPage(pid);
+            trackSui(self, player, pid);
+        }
+        else
+        {
+            cleanScriptVars(self);
         }
     }
 
@@ -659,10 +808,16 @@ public class planetary_mining extends script.base_script
         String resourceClass = utils.getStringScriptVar(self, VAR_SELECTED_RESOURCE_CLASS);
         String planet = utils.getStringScriptVar(self, VAR_PLANET);
         location surveyLocation = utils.getLocationScriptVar(self, VAR_SURVEY_LOCATION);
+        if (surveyLocation == null || resourceClass == null || resourceClass.equals(""))
+        {
+            cleanScriptVars(self);
+            return SCRIPT_CONTINUE;
+        }
         obj_id[] candidates = utils.getObjIdArrayScriptVar(self, VAR_SURVEY_CANDIDATES);
         int surveyIndex = utils.getIntScriptVar(self, VAR_SURVEY_INDEX);
         if (!isEligibleMiningDroidUser(self, player) || candidates == null || surveyIndex <= 0 || surveyIndex > candidates.length)
         {
+            cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
         if (xVals != null && zVals != null && efficiencies != null && xVals.length == 9 && zVals.length == 9 && efficiencies.length == 9)
@@ -722,11 +877,17 @@ public class planetary_mining extends script.base_script
         {
             results[i] = getLocalizedResourceName(resultTypes[i]) + ": " + getLocalizedResourceTypeName(resultTypes[i]) + " - " + Math.round(resultDensities[i] * 100) + "%";
         }
-        sui.listbox(self, player, "Survey results. Select a resource to launch the droid.", sui.OK_CANCEL, "Planetary Mining Droid", results, "handleMiningResourceSelection");
+        trackSui(self, player, sui.listbox(self, player, "Survey results. Select a resource to launch the droid.", sui.OK_CANCEL, DISPLAY_NAME, results, "handleMiningResourceSelection"));
     }
 
     public int handleMiningResourceSelection(obj_id self, dictionary params) throws InterruptedException
     {
+        obj_id player = params == null ? obj_id.NULL_ID : sui.getPlayerId(params);
+        if (!isCurrentSui(self, player, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        clearTrackedSui(self, player);
         if (params == null || params.isEmpty())
         {
             cleanScriptVars(self);
@@ -743,7 +904,6 @@ public class planetary_mining extends script.base_script
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        obj_id player = sui.getPlayerId(params);
         obj_id[] resultTypes = utils.getObjIdArrayScriptVar(self, VAR_SURVEY_RESULT_TYPES);
         float[] resultDensities = utils.getFloatArrayScriptVar(self, VAR_SURVEY_RESULT_DENSITIES);
         location[] resultLocations = utils.getLocationArrayScriptVar(self, VAR_SURVEY_RESULT_LOCATIONS);
@@ -846,7 +1006,7 @@ public class planetary_mining extends script.base_script
 
     public boolean isAllowedSurveyGrid(String planet, location surveyLocation) throws InterruptedException
     {
-        if (surveyLocation == null)
+        if (!isWithinSceneBounds(planet, surveyLocation, SURVEY_GRID_RADIUS))
         {
             return false;
         }
@@ -870,7 +1030,7 @@ public class planetary_mining extends script.base_script
         {
             for (float z = surveyLocation.z - SURVEY_GRID_RADIUS; z <= surveyLocation.z + SURVEY_GRID_RADIUS; z += SURVEY_GRID_RADIUS)
             {
-                if (!isAllowedSurveyLocation(planet, new location(x, 0, z, surveyLocation.area)))
+                if (!isAllowedSurveySample(planet, new location(x, 0, z, surveyLocation.area)))
                 {
                     return false;
                 }
@@ -886,12 +1046,23 @@ public class planetary_mining extends script.base_script
 
     public boolean isAllowedSurveySample(String planet, location surveyLocation) throws InterruptedException
     {
-        if (!planet.equals("kashyyyk_main") && !planet.equals("kashyyyk_rryatt_trail") && !planet.equals("kashyyyk_dead_forest") && !planet.equals("kashyyyk_hunting"))
+        return isWithinSceneBounds(planet, surveyLocation, 0.0f);
+    }
+
+    public boolean isWithinSceneBounds(String planet, location surveyLocation, float inset) throws InterruptedException
+    {
+        if (surveyLocation == null || planet == null || !planet.equals(surveyLocation.area))
         {
-            return isAllowedSurveyLocation(planet, surveyLocation);
+            return false;
         }
-        float maximumCoordinate = planet.equals("kashyyyk_rryatt_trail") ? 8000.0f : ((planet.equals("kashyyyk_dead_forest") || planet.equals("kashyyyk_hunting")) ? 2048.0f : 4096.0f);
-        return surveyLocation != null && planet.equals(surveyLocation.area) && surveyLocation.x >= -maximumCoordinate + SURVEY_GRID_RADIUS && surveyLocation.x <= maximumCoordinate - SURVEY_GRID_RADIUS && surveyLocation.z >= -maximumCoordinate + SURVEY_GRID_RADIUS && surveyLocation.z <= maximumCoordinate - SURVEY_GRID_RADIUS;
+        if (planet.equals("mustafar"))
+        {
+            float displayX = surveyLocation.x + 2880.0f;
+            float displayZ = surveyLocation.z - 2976.0f;
+            return displayX >= MUSTAFAR_DISPLAY_MIN_COORDINATE + inset && displayX <= MUSTAFAR_DISPLAY_MAX_COORDINATE - inset && displayZ >= MUSTAFAR_DISPLAY_MIN_COORDINATE + inset && displayZ <= MUSTAFAR_DISPLAY_MAX_COORDINATE - inset;
+        }
+        float maximumCoordinate = planet.equals("kashyyyk_rryatt_trail") ? 8000.0f : ((planet.equals("kashyyyk_dead_forest") || planet.equals("kashyyyk_hunting")) ? 2048.0f : (planet.equals("kashyyyk_main") ? 4096.0f : 0.0f));
+        return maximumCoordinate > 0.0f && surveyLocation.x >= -maximumCoordinate + inset && surveyLocation.x <= maximumCoordinate - inset && surveyLocation.z >= -maximumCoordinate + inset && surveyLocation.z <= maximumCoordinate - inset;
     }
 
     public boolean isWithinPolygonOutset(float x, float z, float[][] polygon, float outset)
@@ -976,7 +1147,28 @@ public class planetary_mining extends script.base_script
 
     public boolean isSelectedResourceAvailable(obj_id self, obj_id resourceType) throws InterruptedException
     {
-        return getResourceDensity(self, resourceType) != null;
+        if (getResourceDensity(self, resourceType) == null)
+        {
+            return false;
+        }
+        location surveyLocation = utils.getLocationScriptVar(self, VAR_SURVEY_LOCATION);
+        String resourceClass = utils.getStringScriptVar(self, VAR_SELECTED_RESOURCE_CLASS);
+        if (surveyLocation == null || resourceClass == null || resourceClass.equals(""))
+        {
+            return false;
+        }
+        obj_id[] availableResources = getAvailablePmdResourceTypes(surveyLocation, resourceClass);
+        if (availableResources != null)
+        {
+            for (obj_id availableResource : availableResources)
+            {
+                if (resourceType.equals(availableResource))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public int getMiningTime(obj_id self) throws InterruptedException
@@ -1017,8 +1209,104 @@ public class planetary_mining extends script.base_script
         }
     }
 
+    public boolean beginFlow(obj_id self, obj_id player) throws InterruptedException
+    {
+        if (utils.hasScriptVar(self, VAR_FLOW_PLAYER) || hasObjVar(player, VAR_PENDING_LAUNCH_ITEM) || hasObjVar(player, VAR_PENDING_RELEASE_SEQUENCES) || utils.hasScriptVar(player, VAR_RELEASE_IN_FLIGHT))
+        {
+            return false;
+        }
+        obj_id activeItem = utils.getObjIdScriptVar(player, VAR_FLOW_ITEM);
+        if (isIdValid(activeItem))
+        {
+            return false;
+        }
+        utils.removeScriptVar(player, VAR_FLOW_ITEM);
+        utils.setScriptVar(self, VAR_FLOW_PLAYER, player);
+        utils.setScriptVar(player, VAR_FLOW_ITEM, self);
+        return true;
+    }
+
+    public void trackSui(obj_id self, obj_id player, int pid) throws InterruptedException
+    {
+        if (pid < 0)
+        {
+            cleanScriptVars(self);
+            return;
+        }
+        utils.setScriptVar(self, VAR_FLOW_PID, pid);
+        sui.setPid(player, pid, PID_NAME);
+    }
+
+    public boolean isCurrentSui(obj_id self, obj_id player, dictionary params) throws InterruptedException
+    {
+        if (params == null || params.isEmpty() || !isIdValid(player))
+        {
+            return false;
+        }
+        obj_id flowPlayer = utils.getObjIdScriptVar(self, VAR_FLOW_PLAYER);
+        obj_id flowItem = utils.getObjIdScriptVar(player, VAR_FLOW_ITEM);
+        if (!player.equals(flowPlayer) || !self.equals(flowItem) || !utils.hasScriptVar(self, VAR_FLOW_PID) || !sui.hasPid(player, PID_NAME))
+        {
+            return false;
+        }
+        int pageId = params.getInt("pageId");
+        int itemPid = utils.getIntScriptVar(self, VAR_FLOW_PID);
+        int playerPid = sui.getPid(player, PID_NAME);
+        if (pageId != itemPid || pageId != playerPid)
+        {
+            if (pageId >= 0)
+            {
+                forceCloseSUIPage(pageId);
+            }
+            return false;
+        }
+        if (!utils.isNestedWithin(self, player))
+        {
+            cleanScriptVars(self);
+            return false;
+        }
+        return true;
+    }
+
+    public void clearTrackedSui(obj_id self, obj_id player) throws InterruptedException
+    {
+        int itemPid = utils.getIntScriptVar(self, VAR_FLOW_PID);
+        if (isIdValid(player) && sui.hasPid(player, PID_NAME) && sui.getPid(player, PID_NAME) == itemPid)
+        {
+            sui.removePid(player, PID_NAME);
+        }
+        utils.removeScriptVar(self, VAR_FLOW_PID);
+    }
+
     public void cleanScriptVars(obj_id self) throws InterruptedException
     {
+        obj_id player = utils.getObjIdScriptVar(self, VAR_FLOW_PLAYER);
+        if (utils.hasScriptVar(self, VAR_FLOW_PID))
+        {
+            int pid = utils.getIntScriptVar(self, VAR_FLOW_PID);
+            if (pid >= 0)
+            {
+                forceCloseSUIPage(pid);
+            }
+        }
+        if (isIdValid(player))
+        {
+            if (sui.hasPid(player, PID_NAME))
+            {
+                sui.removePid(player, PID_NAME);
+            }
+            obj_id flowItem = utils.getObjIdScriptVar(player, VAR_FLOW_ITEM);
+            if (self.equals(flowItem))
+            {
+                utils.removeScriptVar(player, VAR_FLOW_ITEM);
+            }
+        }
+        utils.removeScriptVar(self, VAR_FLOW_PLAYER);
+        utils.removeScriptVar(self, VAR_FLOW_PID);
+        utils.removeScriptVar(self, VAR_LAUNCH_COUNTDOWN);
+        utils.removeScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING);
+        utils.removeScriptVar(self, VAR_LAUNCH_AMOUNT);
+        utils.removeScriptVar(self, VAR_LAUNCH_JOB_SEQUENCE);
         utils.removeScriptVar(self, VAR_PLANET);
         utils.removeScriptVar(self, VAR_SURVEY_LOCATION);
         utils.removeScriptVar(self, VAR_RESOURCE_CLASS);
