@@ -32,6 +32,12 @@ public class resource extends script.base_script
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".started_at";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION = VAR_PLANETARY_MINING_ACTIVE_JOB + ".duration";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED = VAR_PLANETARY_MINING_ACTIVE_JOB + ".scheduled";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_QUALITY = VAR_PLANETARY_MINING_ACTIVE_JOB + ".quality";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SURVEYING = VAR_PLANETARY_MINING_ACTIVE_JOB + ".surveying";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_DENSITY = VAR_PLANETARY_MINING_ACTIVE_JOB + ".density";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INTERVAL = VAR_PLANETARY_MINING_ACTIVE_JOB + ".sampling_interval";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INCREASE = VAR_PLANETARY_MINING_ACTIVE_JOB + ".sampling_increase";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_FALLEENS_FIST = VAR_PLANETARY_MINING_ACTIVE_JOB + ".falleens_fist";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".completion_amount";
     public static final String VAR_PLANETARY_MINING_DELIVERY_JOB = "planetary_mining.delivery_job";
     public static final String BUFF_PLANETARY_MINING_SURVEY_LICENSE = "pmd_survey_license_occupied";
@@ -164,6 +170,46 @@ public class resource extends script.base_script
     public static final String DATATABLE_RESOURCES = "datatables/resource/resource_tree.iff";
     public static final String DATATABLE_COL_ENUM = "Enum";
     public static final String DATATABLE_COL_RESOURCE_CRATE_TYPE = "Resource Container Type";
+
+    public static int getPlanetaryMiningAmount(float quality, float density, int surveying, int duration, int samplingInterval, int samplingIncrease, boolean falleensFist) throws InterruptedException
+    {
+        if (quality <= 0 || density <= 0 || duration < 1 || samplingInterval < 1)
+        {
+            return 0;
+        }
+        float threshold = SAMPLE_DENSITY_THRESHOLD * ((100.0f - surveying) / 100.0f);
+        float potentialAmount = BASE_SAMPLE_AMOUNT * (density - threshold);
+        if (potentialAmount < 1)
+        {
+            return 0;
+        }
+        float chance = 50.0f + 20.0f * ((surveying - 15.0f) / 85.0f);
+        if (chance > 70.0f)
+        {
+            chance = 70.0f;
+        }
+        float expectedAmount = 0.0f;
+        for (int roll = 1; roll <= 100; ++roll)
+        {
+            if (roll <= chance)
+            {
+                float resultModifier = ((2 * chance) - roll) / (2 * chance);
+                int successfulAmount = (int)(potentialAmount * resultModifier);
+                successfulAmount = Math.max(1, successfulAmount);
+                if (samplingIncrease > 0)
+                {
+                    successfulAmount += (int)(successfulAmount * samplingIncrease / 100.0f);
+                }
+                if (falleensFist)
+                {
+                    successfulAmount = (int)(successfulAmount * 1.5f);
+                }
+                expectedAmount += successfulAmount / 100.0f;
+            }
+        }
+        int sampleCount = duration / samplingInterval;
+        return (int)(expectedAmount * (quality / 100.0f) * sampleCount);
+    }
     public static final String DEFAULT_CONTAINER = "object/resource_container/simple.iff";
     public static final int CONTAINER_VOLUME_MAX = 100000;
     public static final String MSG_SELECT_RANGE = "@" + STF_SURVEY + ":select_range";

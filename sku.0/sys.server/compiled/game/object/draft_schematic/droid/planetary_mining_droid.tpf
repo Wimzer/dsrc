@@ -7,73 +7,49 @@ craftedObjectTemplate = "object/tangible/component/droid/planetary_mining_droid.
 slots = [
 	[
 	optional=false,
-	name = "craft_droid_ingredients_n" "primary_frame",
+	name = "planetary_mining_droid" "load_bearing_frame",
 	options = [
-		[ingredientType=IT_resourceClass, ingredients = [[name="craft_droid_ingredients_n" "primary_frame", ingredient="steel_carbonite", count=40]], complexity = 0, skillCommand = "unskilled"]],
+		[ingredientType=IT_resourceClass, ingredients = [[name="planetary_mining_droid" "load_bearing_frame", ingredient="metal", count=110]], complexity = 0, skillCommand = "unskilled"]],
 	optionalSkillCommand = "",
 	complexity = 0,
 	appearance = "" ],
 	[
 	optional=false,
-	name = "craft_droid_ingredients_n" "body_shell",
+	name = "planetary_mining_droid" "bore_mechanism",
 	options = [
-		[ingredientType=IT_resourceClass, ingredients = [[name="craft_droid_ingredients_n" "body_shell", ingredient="chemical", count=20]], complexity = 0, skillCommand = "unskilled"]],
+		[ingredientType=IT_resourceClass, ingredients = [[name="planetary_mining_droid" "bore_mechanism", ingredient="gemstone", count=25]], complexity = 0, skillCommand = "unskilled"]],
 	optionalSkillCommand = "",
 	complexity = 0,
 	appearance = "" ],
 	[
 	optional=false,
-	name = "craft_droid_ingredients_n" "shielding_and_insulation",
+	name = "planetary_mining_droid" "cargo_hold",
 	options = [
-		[ingredientType=IT_resourceClass, ingredients = [[name="craft_droid_ingredients_n" "shielding_and_insulation", ingredient="chemical", count=25]], complexity = 0, skillCommand = "unskilled"]],
+		[ingredientType=IT_resourceClass, ingredients = [[name="planetary_mining_droid" "cargo_hold", ingredient="metal", count=50]], complexity = 0, skillCommand = "unskilled"]],
 	optionalSkillCommand = "",
 	complexity = 0,
 	appearance = "" ],
 	[
 	optional=false,
-	name = "craft_droid_ingredients_n" "communication_array",
+	name = "planetary_mining_droid" "survey_operations_computer",
 	options = [
-		[ingredientType=IT_resourceClass, ingredients = [[name="craft_droid_ingredients_n" "communication_array", ingredient="crystalline_vertex", count=30]], complexity = 0, skillCommand = "unskilled"]],
+		[ingredientType=IT_template, ingredients = [[name="planetary_mining_droid" "survey_operations_computer", ingredient="object/tangible/component/item/electronics_gp_module.iff", count=3]], complexity = 0, skillCommand = "unskilled"]],
 	optionalSkillCommand = "",
 	complexity = 0,
 	appearance = "" ],
 	[
 	optional=false,
-	name = "craft_droid_ingredients_n" "transportation_module",
+	name = "planetary_mining_droid" "terrain_manipulator",
 	options = [
-		[ingredientType=IT_resourceClass, ingredients = [[name="craft_droid_ingredients_n" "transportation_module", ingredient="radioactive_known", count=35]], complexity = 0, skillCommand = "unskilled"]],
+		[ingredientType=IT_template, ingredients = [[name="planetary_mining_droid" "terrain_manipulator", ingredient="object/tangible/component/droid/manipulator_arm.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
 	optionalSkillCommand = "",
 	complexity = 0,
 	appearance = "" ],
 	[
 	optional=false,
-	name = "craft_droid_ingredients_n" "survey_control_circuit",
+	name = "planetary_mining_droid" "resource_extraction_equipment",
 	options = [
-		[ingredientType=IT_template, ingredients = [[name="craft_droid_ingredients_n" "survey_control_circuit", ingredient="object/tangible/component/item/electronics_gp_module.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
-	optionalSkillCommand = "",
-	complexity = 0,
-	appearance = "" ],
-	[
-	optional=false,
-	name = "craft_droid_ingredients_n" "survey_scanning_storage_circuit",
-	options = [
-		[ingredientType=IT_template, ingredients = [[name="craft_droid_ingredients_n" "survey_scanning_storage_circuit", ingredient="object/tangible/component/item/electronics_memory_module.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
-	optionalSkillCommand = "",
-	complexity = 0,
-	appearance = "" ],
-	[
-	optional=false,
-	name = "craft_droid_ingredients_n" "command_interpreter",
-	options = [
-		[ingredientType=IT_template, ingredients = [[name="craft_droid_ingredients_n" "command_interpreter", ingredient="object/tangible/component/item/electronics_gp_module.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
-	optionalSkillCommand = "",
-	complexity = 0,
-	appearance = "" ],
-	[
-	optional=false,
-	name = "craft_droid_ingredients_n" "navigation_control_circuit",
-	options = [
-		[ingredientType=IT_template, ingredients = [[name="craft_droid_ingredients_n" "navigation_control_circuit", ingredient="object/tangible/component/item/electronics_gp_module.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
+		[ingredientType=IT_template, ingredients = [[name="planetary_mining_droid" "resource_extraction_equipment", ingredient="object/tangible/component/droid/hand_sample_module.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
 	optionalSkillCommand = "",
 	complexity = 0,
 	appearance = "" ]]
@@ -85,6 +61,6 @@ manufactureScripts = [ "systems.crafting.droid.crafted_items.crafting_planetary_
 
 @class object_template 5
 
-complexity = 25
+complexity = 30
 sharedTemplate = "object/draft_schematic/droid/shared_planetary_mining_droid.iff"
 volume = 1

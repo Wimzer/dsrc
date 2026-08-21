@@ -9,7 +9,7 @@
 @class object_template 5
 
 objectName = "planetary_mining_droid" "planetary_mining_droid"
-detailedDescription = "planetary_mining_droid" "planetary_mining_droid"
+detailedDescription = "planetary_mining_droid" "description"
 lookAtText = "planetary_mining_droid" "planetary_mining_droid"
 
 snapToTerrain = true

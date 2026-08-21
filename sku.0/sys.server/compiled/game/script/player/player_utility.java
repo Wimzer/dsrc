@@ -96,6 +96,13 @@ public class player_utility extends script.base_script
             }
             else
             {
+                int startedAt = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT);
+                int duration = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION);
+                float remaining = Math.max(0, startedAt + duration - getCalendarTime());
+                if (remaining > 0 && !buff.hasBuff(self, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+                {
+                    buff.applyBuff(self, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE, remaining);
+                }
                 planetaryMiningDroidAdjustAccountFeatureId(self, self, 1, "reserve:" + activeJobSequence);
                 if (hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT))
                 {
@@ -107,9 +114,6 @@ public class player_utility extends script.base_script
                 {
                     dictionary returnParams = new dictionary();
                     returnParams.put("jobSequence", activeJobSequence);
-                    int startedAt = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT);
-                    int duration = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION);
-                    float remaining = Math.max(0, startedAt + duration - getCalendarTime());
                     if (messageTo(self, "handlePlanetaryMiningDroidReturn", returnParams, remaining, true))
                     {
                         setObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED, 1);
@@ -1374,7 +1378,7 @@ public class player_utility extends script.base_script
         clearPlanetaryMiningDroidReturnSui(self);
         int elapsed = Math.max(0, getCalendarTime() - getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT));
         int duration = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION);
-        String prompt = "Resource: " + utils.localizeSIDString(getResourceName(resourceType)) + "\nFrozen full yield: " + fullAmount + "\nElapsed time: " + Math.min(elapsed, duration) + " of " + duration + " seconds\nYield if returned now: " + projectedAmount + "\nForfeited remainder: " + (fullAmount - projectedAmount) + "\n\nReturn the droid now?";
+        String prompt = "Resource: " + utils.localizeSIDString(getResourceName(resourceType)) + "\nProjected Full Yield: " + fullAmount + "\nElapsed time: " + Math.min(elapsed, duration) + " of " + duration + " seconds\nResources Acquired: " + projectedAmount + "\nResources Forfeited: " + (fullAmount - projectedAmount) + "\n\nReturn the droid now?";
         int pid = sui.msgbox(self, self, prompt, sui.YES_NO, "Return Interplanetary Mining Droid", sui.MSG_QUESTION, "handleReturnPlanetaryMiningDroidConfirmation");
         if (pid >= 0)
         {
@@ -1428,7 +1432,17 @@ public class player_utility extends script.base_script
             return -1;
         }
         int elapsed = Math.max(0, Math.min(duration, getCalendarTime() - startedAt));
-        return (int)(((long)fullAmount * elapsed) / duration);
+        if (!hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_QUALITY) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SURVEYING) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DENSITY) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INTERVAL) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INCREASE) || !hasObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_FALLEENS_FIST))
+        {
+            return (int)(((long)fullAmount * elapsed) / duration);
+        }
+        float quality = getFloatObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_QUALITY);
+        int surveying = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SURVEYING);
+        float density = getFloatObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DENSITY);
+        int samplingInterval = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INTERVAL);
+        int samplingIncrease = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INCREASE);
+        boolean falleensFist = getIntObjVar(self, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_FALLEENS_FIST) != 0;
+        return resource.getPlanetaryMiningAmount(quality, density, surveying, elapsed, samplingInterval, samplingIncrease, falleensFist);
     }
     public void clearPlanetaryMiningDroidReturnSui(obj_id self) throws InterruptedException
     {

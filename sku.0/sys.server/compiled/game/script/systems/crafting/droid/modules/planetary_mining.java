@@ -75,12 +75,21 @@ public class planetary_mining extends script.base_script
     public static final String VAR_RELEASE_IN_FLIGHT = "planetary_mining.release_in_flight";
     public static final String VAR_LAUNCH_AMOUNT = "planetary_mining.launch_amount";
     public static final String VAR_LAUNCH_JOB_SEQUENCE = "planetary_mining.launch_job_sequence";
+    public static final String VAR_LAUNCH_QUALITY = "planetary_mining.launch_quality";
+    public static final String VAR_LAUNCH_SURVEYING = "planetary_mining.launch_surveying";
+    public static final String VAR_LAUNCH_DENSITY = "planetary_mining.launch_density";
+    public static final String VAR_LAUNCH_SAMPLING_INTERVAL = "planetary_mining.launch_sampling_interval";
+    public static final String VAR_LAUNCH_SAMPLING_INCREASE = "planetary_mining.launch_sampling_increase";
+    public static final String VAR_LAUNCH_FALLEENS_FIST = "planetary_mining.launch_falleens_fist";
     public static final String PID_NAME = "planetaryMiningDroid";
     public static final String DISPLAY_NAME = "Interplanetary Mining Droid";
     public static final String ATTRIBUTE_BASE = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
-    public static final String LEGACY_STATIC_ATTRIBUTE_BASE = "crafting.component_attribute.";
-    public static final String ATTRIBUTE_EXTRACTION_RATE = ATTRIBUTE_BASE + "extractRate";
+    public static final String ATTRIBUTE_QUALITY = ATTRIBUTE_BASE + "quality";
+    public static final String ATTRIBUTE_DURATION = ATTRIBUTE_BASE + "duration";
     public static final float MIN_ACTIVE_DENSITY = 0.0001f;
+    public static final int BASE_SAMPLING_DELAY = 25;
+    public static final int MIN_SAMPLING_DELAY = 10;
+    public static final int SAMPLE_LOOP_OVERHEAD = 3;
     public static final float RRYATT_TRAIL_WORLD_OFFSET_X = 1294.0f;
     public static final float RRYATT_TRAIL_WORLD_OFFSET_Z = 3880.0f;
     public static final int MAX_COORDINATE_INPUT_LENGTH = 32;
@@ -463,7 +472,7 @@ public class planetary_mining extends script.base_script
         int amount = getMiningAmount(self, player);
         if (amount < 1)
         {
-            sendSystemMessage(player, "This droid's base extraction rate is too low to return a resource unit at the 90% cap.", null);
+            sendSystemMessage(player, "This droid's expected yield is too low to return a resource unit at the selected concentration and duration.", null);
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
@@ -558,6 +567,12 @@ public class planetary_mining extends script.base_script
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT, getCalendarTime());
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION, miningDuration);
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED, 0);
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_QUALITY, utils.getFloatScriptVar(self, VAR_LAUNCH_QUALITY));
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SURVEYING, utils.getIntScriptVar(self, VAR_LAUNCH_SURVEYING));
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DENSITY, utils.getFloatScriptVar(self, VAR_LAUNCH_DENSITY));
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INTERVAL, utils.getIntScriptVar(self, VAR_LAUNCH_SAMPLING_INTERVAL));
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INCREASE, utils.getIntScriptVar(self, VAR_LAUNCH_SAMPLING_INCREASE));
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_FALLEENS_FIST, utils.getIntScriptVar(self, VAR_LAUNCH_FALLEENS_FIST));
         setObjVar(player, VAR_ACTIVE_JOB_SEQUENCE, jobSequence);
         dictionary data = new dictionary();
         data.put("jobSequence", jobSequence);
@@ -889,27 +904,50 @@ public class planetary_mining extends script.base_script
 
     public int getMiningTime(obj_id self) throws InterruptedException
     {
-        return 30;
+        float duration = getFloatObjVar(self, ATTRIBUTE_DURATION);
+        if (duration <= 0)
+        {
+            duration = 24.0f;
+        }
+        duration = Math.max(16.0f, Math.min(24.0f, duration));
+        return Math.round(duration * 60 * 60);
+    }
+
+    public float getMiningQuality(obj_id self) throws InterruptedException
+    {
+        float quality = getFloatObjVar(self, ATTRIBUTE_QUALITY);
+        if (quality <= 0)
+        {
+            quality = getFloatObjVar(self, ATTRIBUTE_BASE + "mechanism_quality");
+        }
+        return Math.max(50.0f, Math.min(100.0f, quality));
     }
 
     public int getMiningAmount(obj_id self, obj_id player) throws InterruptedException
     {
-        float baseExtractionRate = getFloatObjVar(self, ATTRIBUTE_EXTRACTION_RATE);
-        if (baseExtractionRate <= 0)
+        float quality = getMiningQuality(self);
+        resource_density selectedResource = getResourceDensity(self, utils.getObjIdScriptVar(self, VAR_RESOURCE_TYPE));
+        if (selectedResource == null || selectedResource.getDensity() <= 0)
         {
-            baseExtractionRate = getFloatObjVar(self, LEGACY_STATIC_ATTRIBUTE_BASE + "extractRate");
+            return 0;
         }
-        int amount = (int)(baseExtractionRate * 0.9f);
+        int samplingTimeDecrease = getSkillStatisticModifier(player, "expertise_resource_sampling_time_decrease");
+        int samplingDelay = BASE_SAMPLING_DELAY - samplingTimeDecrease;
+        if (samplingDelay <= MIN_SAMPLING_DELAY)
+        {
+            samplingDelay = MIN_SAMPLING_DELAY;
+        }
+        int samplingInterval = samplingDelay + SAMPLE_LOOP_OVERHEAD;
         int expertiseResourceIncrease = getSkillStatisticModifier(player, "expertise_resource_sampling_increase");
-        if (expertiseResourceIncrease > 0)
-        {
-            amount += (int)(amount * expertiseResourceIncrease / 100.0f);
-        }
-        if (buff.hasBuff(player, "tcg_series4_falleens_fist"))
-        {
-            amount = (int)(amount * 1.5f);
-        }
-        return amount;
+        int surveying = getSkillStatMod(player, "surveying");
+        boolean falleensFist = buff.hasBuff(player, "tcg_series4_falleens_fist");
+        utils.setScriptVar(self, VAR_LAUNCH_QUALITY, quality);
+        utils.setScriptVar(self, VAR_LAUNCH_SURVEYING, surveying);
+        utils.setScriptVar(self, VAR_LAUNCH_DENSITY, selectedResource.getDensity());
+        utils.setScriptVar(self, VAR_LAUNCH_SAMPLING_INTERVAL, samplingInterval);
+        utils.setScriptVar(self, VAR_LAUNCH_SAMPLING_INCREASE, expertiseResourceIncrease);
+        utils.setScriptVar(self, VAR_LAUNCH_FALLEENS_FIST, falleensFist ? 1 : 0);
+        return resource.getPlanetaryMiningAmount(quality, selectedResource.getDensity(), surveying, getMiningTime(self), samplingInterval, expertiseResourceIncrease, falleensFist);
     }
 
     public void consumeCharge(obj_id self) throws InterruptedException
@@ -1023,6 +1061,12 @@ public class planetary_mining extends script.base_script
         utils.removeScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING);
         utils.removeScriptVar(self, VAR_LAUNCH_AMOUNT);
         utils.removeScriptVar(self, VAR_LAUNCH_JOB_SEQUENCE);
+        utils.removeScriptVar(self, VAR_LAUNCH_QUALITY);
+        utils.removeScriptVar(self, VAR_LAUNCH_SURVEYING);
+        utils.removeScriptVar(self, VAR_LAUNCH_DENSITY);
+        utils.removeScriptVar(self, VAR_LAUNCH_SAMPLING_INTERVAL);
+        utils.removeScriptVar(self, VAR_LAUNCH_SAMPLING_INCREASE);
+        utils.removeScriptVar(self, VAR_LAUNCH_FALLEENS_FIST);
         utils.removeScriptVar(self, VAR_PLANET);
         utils.removeScriptVar(self, VAR_SURVEY_LOCATION);
         utils.removeScriptVar(self, VAR_RESOURCE_CLASS);
@@ -1048,18 +1092,18 @@ public class planetary_mining extends script.base_script
         int charges = getCount(self);
         if (charges > 0)
         {
-            names[index] = "quantity";
+            names[index] = "charges";
             attribs[index++] = Integer.toString(charges);
         }
-        if (index < names.length && hasObjVar(self, ATTRIBUTE_EXTRACTION_RATE))
+        if (index < names.length)
         {
-            names[index] = "extractRate";
-            attribs[index++] = Integer.toString((int)getFloatObjVar(self, ATTRIBUTE_EXTRACTION_RATE));
+            names[index] = "quality";
+            attribs[index++] = Integer.toString((int)getMiningQuality(self));
         }
-        if (index < names.length && hasObjVar(self, ATTRIBUTE_BASE + "mechanism_quality"))
+        if (index < names.length)
         {
-            names[index] = "mechanism_quality";
-            attribs[index] = Integer.toString((int)getFloatObjVar(self, ATTRIBUTE_BASE + "mechanism_quality"));
+            names[index] = "duration";
+            attribs[index] = Integer.toString(getMiningTime(self) / (60 * 60)) + " hours";
         }
         return SCRIPT_CONTINUE;
     }

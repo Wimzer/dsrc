@@ -2,23 +2,19 @@
 @class draft_schematic_object_template 2
 
 attributes = [
-	[name = "crafting" "decayRate", experiment = "crafting" "expDurability", value = 5..15],
-	[name = "crafting" "complexity", experiment = "" "", value = 25..25],
-	[name = "crafting" "xp", experiment = "" "", value = 380..380],
-	[name = "crafting" "droid_count", experiment = "crafting" "exp_count", value = 3..15],
-	[name = "crafting" "extractRate", experiment = "crafting" "expEffeciency", value = 1..5],
-	[name = "crafting" "mechanism_quality", experiment = "crafting" "expQuality", value = 0..100]]
+	[name = "crafting" "complexity", experiment = "" "", value = 30..30],
+	[name = "crafting" "xp", experiment = "" "", value = 490..490],
+	[name = "crafting" "charges", experiment = "planetary_mining_droid" "exp_charges", value = 1..10],
+	[name = "crafting" "duration", experiment = "planetary_mining_droid" "exp_duration", value = 16..24],
+	[name = "crafting" "quality", experiment = "planetary_mining_droid" "exp_quality", value = 50..100]]
 
 slots = [
-	[name = "craft_droid_ingredients_n" "primary_frame", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "body_shell", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "shielding_and_insulation", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "communication_array", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "transportation_module", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "survey_control_circuit", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "survey_scanning_storage_circuit", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "command_interpreter", hardpoint = ""],
-	[name = "craft_droid_ingredients_n" "navigation_control_circuit", hardpoint = ""]]
+	[name = "planetary_mining_droid" "load_bearing_frame", hardpoint = ""],
+	[name = "planetary_mining_droid" "bore_mechanism", hardpoint = ""],
+	[name = "planetary_mining_droid" "cargo_hold", hardpoint = ""],
+	[name = "planetary_mining_droid" "survey_operations_computer", hardpoint = ""],
+	[name = "planetary_mining_droid" "terrain_manipulator", hardpoint = ""],
+	[name = "planetary_mining_droid" "resource_extraction_equipment", hardpoint = ""]]
 
 craftedSharedTemplate="object/tangible/component/droid/shared_planetary_mining_droid.iff"
 
@@ -27,7 +23,6 @@ craftedSharedTemplate="object/tangible/component/droid/shared_planetary_mining_d
 @class object_template 5
 
 objectName = "planetary_mining_droid" "planetary_mining_droid"
-detailedDescription = "planetary_mining_droid" "planetary_mining_droid"
 lookAtText = "planetary_mining_droid" "planetary_mining_droid"
 
 snapToTerrain = false

@@ -8569,4 +8569,4 @@ armor_infiltrator_boots_02	object/tangible/wearables/armor/infiltrator/armor_inf
 armor_infiltrator_belt_02	object/tangible/wearables/armor/infiltrator/armor_infiltrator_s02_belt.iff	armor		90				4							
 item_tauntaun_dna	object/tangible/loot/beast/dna_container.iff							4		systems.beast.cs_dna			DNA Storage Device (Tauntaun)	Device that stores harvested DNA cores.	
 item_mail_opt_in_4_reward	object/tangible/furniture/all/frn_all_statuette_kash_treecity.iff							4							
-item_planetary_mining_droid	object/tangible/component/droid/planetary_mining_droid.iff	item				float:crafting_components.extractRate=5.0,float:crafting_components.mechanism_quality=100.0	15				1	0	Interplanetary Mining Droid	A test Interplanetary Mining Droid component with BER 5 and quality 100.	Static PMD test component.
+item_planetary_mining_droid	object/tangible/component/droid/planetary_mining_droid.iff	item				float:crafting_components.extractRate=5.0,float:crafting_components.mechanism_quality=100.0	15				1	0	Interplanetary Mining Droid	This specialized droid can venture onto the harsh worlds of Mustafar and Kashyyyk to retrieve resources for its owner.	PMD static item grant.
