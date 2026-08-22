@@ -1,10 +1,14 @@
 package script.systems.crafting.droid.crafted_items;
 
 import script.library.craftinglib;
+import script.draft_schematic;
+import script.modifiable_int;
+import script.obj_id;
 import script.resource_weight;
 
 public class crafting_planetary_mining_droid extends script.systems.crafting.droid.crafting_base_droid_component
 {
+    public static final int MAX_EXPERIMENT_POINTS = 12;
     public static final String[] REQUIRED_SKILLS =
     {
         "crafting_droidengineer_novice"
@@ -61,6 +65,16 @@ public class crafting_planetary_mining_droid extends script.systems.crafting.dro
     public String[] getCustomizationSkillMods() throws InterruptedException
     {
         return CUSTOMIZATION_SKILL_MODS;
+    }
+
+    public int OnManufacturingSchematicCreation(obj_id self, obj_id player, obj_id prototype, draft_schematic schematic, modifiable_int assemblyResult, modifiable_int experimentPoints) throws InterruptedException
+    {
+        int result = super.OnManufacturingSchematicCreation(self, player, prototype, schematic, assemblyResult, experimentPoints);
+        if (experimentPoints.value() > MAX_EXPERIMENT_POINTS)
+        {
+            experimentPoints.set(MAX_EXPERIMENT_POINTS);
+        }
+        return result;
     }
 
     public resource_weight[] getResourceMaxResourceWeights() throws InterruptedException
