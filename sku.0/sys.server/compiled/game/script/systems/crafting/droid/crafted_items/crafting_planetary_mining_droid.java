@@ -23,12 +23,6 @@ public class crafting_planetary_mining_droid extends script.systems.crafting.dro
     };
     public static final resource_weight[] OBJ_ASSEMBLY_ATTRIBUTE_RESOURCES =
     {
-        new resource_weight("quality", new resource_weight.weight[]
-        {
-            new resource_weight.weight(craftinglib.RESOURCE_QUALITY, 1),
-            new resource_weight.weight(craftinglib.RESOURCE_SHOCK_RESIST, 1),
-            new resource_weight.weight(craftinglib.RESOURCE_HEAT_RESIST, 1)
-        }),
         new resource_weight("duration", new resource_weight.weight[]
         {
             new resource_weight.weight(craftinglib.RESOURCE_COLD_RESIST, 1),

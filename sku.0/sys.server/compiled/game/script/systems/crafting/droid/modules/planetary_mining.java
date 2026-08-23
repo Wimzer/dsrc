@@ -907,20 +907,15 @@ public class planetary_mining extends script.base_script
         float duration = getFloatObjVar(self, ATTRIBUTE_DURATION);
         if (duration <= 0)
         {
-            duration = 24.0f;
+            duration = 20.0f;
         }
-        duration = Math.max(16.0f, Math.min(24.0f, duration));
+        duration = Math.max(20.0f, Math.min(24.0f, duration));
         return Math.round(duration * 60 * 60);
     }
 
     public float getMiningQuality(obj_id self) throws InterruptedException
     {
-        float quality = getFloatObjVar(self, ATTRIBUTE_QUALITY);
-        if (quality <= 0)
-        {
-            quality = getFloatObjVar(self, ATTRIBUTE_BASE + "mechanism_quality");
-        }
-        return Math.max(50.0f, Math.min(100.0f, quality));
+        return 100.0f;
     }
 
     public int getMiningAmount(obj_id self, obj_id player) throws InterruptedException
