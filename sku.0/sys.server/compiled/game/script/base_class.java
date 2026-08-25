@@ -13967,6 +13967,11 @@ public class base_class
     {
         return _addResourceToContainer(getLongWithNull(resourceContainer), getLongWithNull(resourceType), amount, getLongWithNull(sourcePlayer));
     }
+    private static native int          _getResourceDepletionTime(long resourceType);
+    public static int          getResourceDepletionTime(obj_id resourceType)
+    {
+        return _getResourceDepletionTime(getLongWithNull(resourceType));
+    }
     /**
      * Remove resources from a container.
      * @param resourceContainer The object id of the resource container.

@@ -73,9 +73,7 @@ public class planetary_mining extends script.base_script
     public static final String VAR_ACTIVE_JOB_SEQUENCE = resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE;
     public static final String VAR_PENDING_RELEASE_SEQUENCES = "planetary_mining.pending_release_sequences";
     public static final String VAR_RELEASE_IN_FLIGHT = "planetary_mining.release_in_flight";
-    public static final String VAR_LAUNCH_AMOUNT = "planetary_mining.launch_amount";
     public static final String VAR_LAUNCH_JOB_SEQUENCE = "planetary_mining.launch_job_sequence";
-    public static final String VAR_LAUNCH_QUALITY = "planetary_mining.launch_quality";
     public static final String VAR_LAUNCH_SURVEYING = "planetary_mining.launch_surveying";
     public static final String VAR_LAUNCH_DENSITY = "planetary_mining.launch_density";
     public static final String VAR_LAUNCH_SAMPLING_INTERVAL = "planetary_mining.launch_sampling_interval";
@@ -84,7 +82,6 @@ public class planetary_mining extends script.base_script
     public static final String PID_NAME = "planetaryMiningDroid";
     public static final String DISPLAY_NAME = "Interplanetary Mining Droid";
     public static final String ATTRIBUTE_BASE = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
-    public static final String ATTRIBUTE_QUALITY = ATTRIBUTE_BASE + "quality";
     public static final String ATTRIBUTE_DURATION = ATTRIBUTE_BASE + "duration";
     public static final float MIN_ACTIVE_DENSITY = 0.0001f;
     public static final int BASE_SAMPLING_DELAY = 25;
@@ -476,7 +473,6 @@ public class planetary_mining extends script.base_script
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        utils.setScriptVar(self, VAR_LAUNCH_AMOUNT, amount);
         if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
         {
             sendSystemMessage(player, "Your Survey License is occupied by an active Interplanetary Mining Droid.", null);
@@ -544,7 +540,7 @@ public class planetary_mining extends script.base_script
             cleanScriptVars(self);
             return SCRIPT_CONTINUE;
         }
-        int amount = utils.getIntScriptVar(self, VAR_LAUNCH_AMOUNT);
+        int amount = getMiningAmount(self, player);
         if (amount < 1)
         {
             clearPendingLaunch(player, operationId);
@@ -565,9 +561,9 @@ public class planetary_mining extends script.base_script
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE, resourceType);
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT, amount);
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT, getCalendarTime());
+        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_GAME_TIME, getGameTime());
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION, miningDuration);
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED, 0);
-        setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_QUALITY, utils.getFloatScriptVar(self, VAR_LAUNCH_QUALITY));
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SURVEYING, utils.getIntScriptVar(self, VAR_LAUNCH_SURVEYING));
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_DENSITY, utils.getFloatScriptVar(self, VAR_LAUNCH_DENSITY));
         setObjVar(player, resource.VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INTERVAL, utils.getIntScriptVar(self, VAR_LAUNCH_SAMPLING_INTERVAL));
@@ -913,14 +909,8 @@ public class planetary_mining extends script.base_script
         return Math.round(duration * 60 * 60);
     }
 
-    public float getMiningQuality(obj_id self) throws InterruptedException
-    {
-        return 100.0f;
-    }
-
     public int getMiningAmount(obj_id self, obj_id player) throws InterruptedException
     {
-        float quality = getMiningQuality(self);
         resource_density selectedResource = getResourceDensity(self, utils.getObjIdScriptVar(self, VAR_RESOURCE_TYPE));
         if (selectedResource == null || selectedResource.getDensity() <= 0)
         {
@@ -936,13 +926,12 @@ public class planetary_mining extends script.base_script
         int expertiseResourceIncrease = getSkillStatisticModifier(player, "expertise_resource_sampling_increase");
         int surveying = getSkillStatMod(player, "surveying");
         boolean falleensFist = buff.hasBuff(player, "tcg_series4_falleens_fist");
-        utils.setScriptVar(self, VAR_LAUNCH_QUALITY, quality);
         utils.setScriptVar(self, VAR_LAUNCH_SURVEYING, surveying);
         utils.setScriptVar(self, VAR_LAUNCH_DENSITY, selectedResource.getDensity());
         utils.setScriptVar(self, VAR_LAUNCH_SAMPLING_INTERVAL, samplingInterval);
         utils.setScriptVar(self, VAR_LAUNCH_SAMPLING_INCREASE, expertiseResourceIncrease);
         utils.setScriptVar(self, VAR_LAUNCH_FALLEENS_FIST, falleensFist ? 1 : 0);
-        return resource.getPlanetaryMiningAmount(quality, selectedResource.getDensity(), surveying, getMiningTime(self), samplingInterval, expertiseResourceIncrease, falleensFist);
+        return resource.getPlanetaryMiningAmount(selectedResource.getDensity(), surveying, getMiningTime(self), samplingInterval, expertiseResourceIncrease, falleensFist);
     }
 
     public void consumeCharge(obj_id self) throws InterruptedException
@@ -1054,9 +1043,7 @@ public class planetary_mining extends script.base_script
         utils.removeScriptVar(self, VAR_FLOW_PID);
         utils.removeScriptVar(self, VAR_LAUNCH_COUNTDOWN);
         utils.removeScriptVar(self, VAR_ACCOUNT_RESERVATION_PENDING);
-        utils.removeScriptVar(self, VAR_LAUNCH_AMOUNT);
         utils.removeScriptVar(self, VAR_LAUNCH_JOB_SEQUENCE);
-        utils.removeScriptVar(self, VAR_LAUNCH_QUALITY);
         utils.removeScriptVar(self, VAR_LAUNCH_SURVEYING);
         utils.removeScriptVar(self, VAR_LAUNCH_DENSITY);
         utils.removeScriptVar(self, VAR_LAUNCH_SAMPLING_INTERVAL);
@@ -1089,11 +1076,6 @@ public class planetary_mining extends script.base_script
         {
             names[index] = "charges";
             attribs[index++] = Integer.toString(charges);
-        }
-        if (index < names.length)
-        {
-            names[index] = "quality";
-            attribs[index++] = Integer.toString((int)getMiningQuality(self));
         }
         if (index < names.length)
         {

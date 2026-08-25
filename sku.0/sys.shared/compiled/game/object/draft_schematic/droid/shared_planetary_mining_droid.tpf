@@ -5,8 +5,7 @@ attributes = [
 	[name = "crafting" "complexity", experiment = "" "", value = 20..20],
 	[name = "crafting" "xp", experiment = "" "", value = 490..490],
 	[name = "crafting" "charges", experiment = "planetary_mining_droid" "exp_charges", value = 1..10],
-	[name = "crafting" "duration", experiment = "planetary_mining_droid" "exp_duration", value = 20..24],
-	[name = "crafting" "quality", experiment = "" "", value = 100..100]]
+	[name = "crafting" "duration", experiment = "planetary_mining_droid" "exp_duration", value = 20..24]]
 
 slots = [
 	[name = "planetary_mining_droid" "load_bearing_frame", hardpoint = ""],

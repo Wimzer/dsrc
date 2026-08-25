@@ -31,8 +31,8 @@ public class resource extends script.base_script
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".amount";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".started_at";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION = VAR_PLANETARY_MINING_ACTIVE_JOB + ".duration";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_GAME_TIME = VAR_PLANETARY_MINING_ACTIVE_JOB + ".started_game_time";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SCHEDULED = VAR_PLANETARY_MINING_ACTIVE_JOB + ".scheduled";
-    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_QUALITY = VAR_PLANETARY_MINING_ACTIVE_JOB + ".quality";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SURVEYING = VAR_PLANETARY_MINING_ACTIVE_JOB + ".surveying";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_DENSITY = VAR_PLANETARY_MINING_ACTIVE_JOB + ".density";
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INTERVAL = VAR_PLANETARY_MINING_ACTIVE_JOB + ".sampling_interval";
@@ -171,9 +171,9 @@ public class resource extends script.base_script
     public static final String DATATABLE_COL_ENUM = "Enum";
     public static final String DATATABLE_COL_RESOURCE_CRATE_TYPE = "Resource Container Type";
 
-    public static int getPlanetaryMiningAmount(float quality, float density, int surveying, int duration, int samplingInterval, int samplingIncrease, boolean falleensFist) throws InterruptedException
+    public static int getPlanetaryMiningAmount(float density, int surveying, int duration, int samplingInterval, int samplingIncrease, boolean falleensFist) throws InterruptedException
     {
-        if (quality <= 0 || density <= 0 || duration < 1 || samplingInterval < 1)
+        if (density <= 0 || duration < 1 || samplingInterval < 1)
         {
             return 0;
         }
@@ -208,7 +208,7 @@ public class resource extends script.base_script
             }
         }
         int sampleCount = duration / samplingInterval;
-        return (int)(expectedAmount * (quality / 100.0f) * sampleCount);
+        return (int)(expectedAmount * sampleCount);
     }
     public static final String DEFAULT_CONTAINER = "object/resource_container/simple.iff";
     public static final int CONTAINER_VOLUME_MAX = 100000;
