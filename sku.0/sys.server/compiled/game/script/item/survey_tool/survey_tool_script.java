@@ -480,7 +480,7 @@ public class survey_tool_script extends script.base_script
         }
         if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
         {
-            sendSystemMessage(player, "Your Survey License is occupied by an active Interplanetary Mining Droid.", null);
+            sendSystemMessage(player, resource.SID_PLANETARY_MINING_SURVEY_LICENSE_OCCUPIED);
             return SCRIPT_CONTINUE;
         }
         boolean surveying = utils.hasScriptVar(player, "surveying.surveying") || utils.hasScriptVar(self, "surveying.surveying");

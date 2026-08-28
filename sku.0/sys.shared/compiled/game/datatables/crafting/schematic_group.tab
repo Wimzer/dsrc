@@ -768,6 +768,7 @@ craftdroidgenmodGroupDD	object/draft_schematic/droid/component/module_socket_ban
 craftdroidGroupE	object/draft_schematic/droid/droid_r3.iff
 craftdroidGroupE	object/draft_schematic/droid/droid_binary_load_lifter.iff
 craftdroidGroupE	object/draft_schematic/droid/droid_3p0.iff
+craftdroidGroupE	object/draft_schematic/droid/planetary_mining_droid.iff
 craftdroidGroupE	object/draft_schematic/droid/droid_r2_advanced.iff
 craftdroidGroupE	object/draft_schematic/droid/droid_probot_advanced.iff
 craftdroidGroupE	object/draft_schematic/droid/droid_le_repair_advanced.iff
@@ -793,7 +794,6 @@ craftdroidGroupF	object/draft_schematic/droid/droid_r3_advanced.iff
 craftdroidGroupF	object/draft_schematic/droid/droid_binary_load_lifter_advanced.iff
 craftdroidGroupF	object/draft_schematic/droid/droid_3p0_advanced.iff
 craftdroidGroupF	object/draft_schematic/droid/droid_interplanetary_survey.iff
-craftdroidGroupF	object/draft_schematic/droid/planetary_mining_droid.iff
 craftdroidGroupF	object/draft_schematic/droid/navicomputer_6.iff
 craftdroidGroupF	object/draft_schematic/droid/component/detonation_module_5.iff
 craftdroidgenmodGroupF	object/draft_schematic/droid/component/data_storage_module_6.iff

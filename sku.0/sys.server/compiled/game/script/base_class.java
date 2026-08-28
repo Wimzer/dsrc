@@ -13926,6 +13926,11 @@ public class base_class
     {
         return _requestSurvey(getLongWithNull(player), parentResourceClass, resourceTypeName, surveyRange, numPoints);
     }
+    private static native boolean      _requestPmdSurvey(long player, long callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z);
+    public static boolean      requestPmdSurvey(obj_id player, obj_id callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z)
+    {
+        return _requestPmdSurvey(getLongWithNull(player), getLongWithNull(callbackTarget), parentResourceClass, resourceTypeName, planetName, x, z);
+    }
     /**
      * Choose a resource type that has a non-depleted pool on the current planet.
      * @param parentResourceClass restrict the results to something derived from this class
@@ -14145,15 +14150,13 @@ public class base_class
         return _ret_obj_id;
     }
     /**
-     * Returns the non-depleted resource types available on the location's planet for a resource class.
-     * @param loc A world location whose scene identifies the planet
-     * @param resourceClass The base resource class for resources to return
-     * @return available resource type ids, or null on error
+     * Returns resource types currently available on the planet identified by a location,
+     * restricted to a resource class and its descendants.
      */
-    private static native long[] _getAvailablePmdResourceTypes(location loc, String resourceClass);
-    public static obj_id[] getAvailablePmdResourceTypes(location loc, String resourceClass)
+    private static native long[] _getAvailableResourceTypes(location loc, String resourceClass);
+    public static obj_id[] getAvailableResourceTypes(location loc, String resourceClass)
     {
-        long[] _ret_long = _getAvailablePmdResourceTypes(loc, resourceClass);
+        long[] _ret_long = _getAvailableResourceTypes(loc, resourceClass);
         obj_id[] _ret_obj_id = null;
         if (_ret_long != null)
         {
@@ -14226,11 +14229,6 @@ public class base_class
      * @return an array of resource type/densities that meet the criteria, or null on error
      */
     public static native resource_density[] requestResourceList(location loc, float minDensity, float maxDensity, String resourceClass);
-    private static native boolean _requestPmdSurvey(long player, long callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z);
-    public static boolean requestPmdSurvey(obj_id player, obj_id callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z)
-    {
-        return _requestPmdSurvey(getLongWithNull(player), getLongWithNull(callbackTarget), parentResourceClass, resourceTypeName, planetName, x, z);
-    }
     /**
      * Get all the attributes for a resource type
      * @param resource The id of the resource type
@@ -25972,10 +25970,10 @@ public class base_class
     {
         _adjustSwgTcgAccountFeatureId(getLongWithNull(player), getLongWithNull(item), featureId, adjustment);
     }
-    private static native boolean _planetaryMiningDroidAdjustAccountFeatureId(long player, long callbackTarget, int adjustment, String operationId);
-    public static boolean planetaryMiningDroidAdjustAccountFeatureId(obj_id player, obj_id callbackTarget, int adjustment, String operationId)
+    private static native boolean _planetaryMiningDroidUpdateAccountJob(long player, long callbackTarget, int jobSequence, boolean reserve);
+    public static boolean planetaryMiningDroidUpdateAccountJob(obj_id player, obj_id callbackTarget, int jobSequence, boolean reserve)
     {
-        return _planetaryMiningDroidAdjustAccountFeatureId(getLongWithNull(player), getLongWithNull(callbackTarget), adjustment, operationId);
+        return _planetaryMiningDroidUpdateAccountJob(getLongWithNull(player), getLongWithNull(callbackTarget), jobSequence, reserve);
     }
     public static native String veteranGetEventAnnouncement(String event);
     public static native String veteranGetEventDescription(String event);

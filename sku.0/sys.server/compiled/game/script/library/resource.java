@@ -41,6 +41,7 @@ public class resource extends script.base_script
     public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".completion_amount";
     public static final String VAR_PLANETARY_MINING_DELIVERY_JOB = "planetary_mining.delivery_job";
     public static final String BUFF_PLANETARY_MINING_SURVEY_LICENSE = "pmd_survey_license_occupied";
+    public static final string_id SID_PLANETARY_MINING_SURVEY_LICENSE_OCCUPIED = new string_id("planetary_mining_droid", "survey_license_occupied");
     public static final String HANDLER_SET_RANGE = "handleSetRange";
     public static final String HANDLER_SET_RESOLUTION = "handleSetResolution";
     public static final String VAR_SETTINGS_BASE = VAR_SURVEY_BASE + ".settings";
@@ -442,7 +443,7 @@ public class resource extends script.base_script
         }
         if (hasObjVar(user, VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(user, BUFF_PLANETARY_MINING_SURVEY_LICENSE))
         {
-            sendSystemMessage(user, "Your Survey License is occupied by an active Interplanetary Mining Droid.", null);
+            sendSystemMessage(user, SID_PLANETARY_MINING_SURVEY_LICENSE_OCCUPIED);
             return SAMPLE_STOP_LOOP;
         }
         obj_id typeId = getResourceTypeByName(type);
