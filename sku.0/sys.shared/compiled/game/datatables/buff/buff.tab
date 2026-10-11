@@ -1991,3 +1991,18 @@ en_sprint	en_sprint			10	command.en_sprint	30	movement	0	movement_resist_snare	1
 event_halloween_costume_skeleton1	shapechange	halloween_shapechange		1	buffs.costume	1800	movement	0	event_halloween_costume	51		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 costume_hutt_female	shapechange	halloween_shapechange		1	buffs.costume	1800	movement	0	event_halloween_costume	3		0		0		0	STATE_NONE	none			1	0		0	1	1	1	1	1	0	1	1	1
 gcw_rocket_turret	gcw_mini_turret			1		1	gcw_mini_turret	1		0		0		0		0	STATE_NONE	none			0	0		1	1	1	0	1	1	0	1	1	1
+axkva_hard_strength_from_the_grave	axkvaHardStrength			1	jedi.forceExtinguish	-1	expertise_innate_protection_all	4000	combat_divide_damage_taken	20	combat_glancing_blow_reduction	700		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	0	1
+axkva_hard_immune_ranged	axkvaHardAttackImmunity			1	jedi.forceAbsorb	-1	combat_ranged_attack_avoidance	1000		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	0	1
+axkva_hard_immune_melee	axkvaHardAttackImmunity			1	command.fs_path_perceptive_sentinel	-1	combat_melee_attack_avoidance	1000		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	0	1
+axkva_hard_grieving_rage_1	axkvaHardGrievingRage			1	jedi.forceCurePoison	-1	combat_multiply_damage_dealt	0		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	3	1	0	1	0	1
+axkva_hard_grieving_rage_2	axkvaHardGrievingRage			2	jedi.forceCurePoison	-1	combat_multiply_damage_dealt	50		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	3	1	0	1	0	1
+axkva_hard_grieving_rage_3	axkvaHardGrievingRage			3	jedi.forceCurePoison	-1	combat_multiply_damage_dealt	100		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	3	1	0	1	0	1
+axkva_hard_coven_protection	axkva_hard_coven_protection			1	command.bh_shields	-1	combat_divide_damage_taken	100		0		0		0		0	STATE_NONE	none			1	0		0	1	0	0	1	0	1	0	0	1
+axkva_hard_contagion	axkva_hard_contagion			1	command.thyroidRupture	4	axkva_hard_contagion	0		0		0		0		0	STATE_NONE	none			1	1		0	1	1	0	1	1	0	1	1	1
+axkva_hard_contagion_recourse	axkva_hard_contagion			2	command.bh_flawless_strike	7		0		0		0		0		0	STATE_NONE	none			1	1		0	1	1	0	1	1	0	1	1	1
+ig88_hard_deflector_plating	ig88HardDeflectorPlating			1	command.ig88_droideka_shield	12	damage_immune	1		0		0		0		0	STATE_NONE	handleClearBuffEffect	appearance/pt_ig88_shield.prt		1	0		0	1	1	0	1	1	0	1	0	1
+ig88_hard_symbiotic_warning	ig88HardSymbiotic			1	command.bm_enrage	7		0		0		0		0		0	STATE_NONE	none	clienteffect/cyborg_cbt_electric_hit.cef		1	0		0	1	1	0	1	1	0	1	0	1
+ig88_hard_overwhelming_nausea	ig88HardNausea			1	command.bh_dread_strike	15	constitution_modified	-500	stamina_modified	-500		0		0		0	STATE_NONE	none			1	1		0	1	1	0	1	1	0	1	0	1
+ig88_hard_enrage	ig88HardEnrage			1	command.bm_enrage	-1	damage_dealt_mod	2		0		0		0		0	STATE_NONE	none			1	0		0	1	1	0	1	1	0	1	0	1
+ig88_hard_droideka_electrify	ig88HardElectrify			1	command.shock	10	movement	0	glancing_blow_vulnerable	100	expertise_strikethrough_chance	-100		0		0	STATE_NONE	none	clienteffect/ig88_droideka_electrify.cef		1	1		0	1	1	0	1	1	0	1	0	1
+ig88_hard_dug_in	ig88HardDugIn			1	command.criticalStrike	-1	movement	0		0		0		0		0	STATE_NONE	none	clienteffect/commando_position_secured.cef		1	0		0	1	0	0	1	0	0	1	1	1

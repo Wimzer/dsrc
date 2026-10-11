@@ -17,6 +17,7 @@ FORM "PLTS"
 		Planet("tutorial")
 		Planet("yavin4")
 		Planet("dungeon1")
+		Planet("dungeon3")
 		Planet("space_corellia")
 		Planet("space_corellia_2")
 		Planet("space_naboo")
