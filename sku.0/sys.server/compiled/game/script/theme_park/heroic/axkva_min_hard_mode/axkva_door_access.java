@@ -12,7 +12,10 @@ public class axkva_door_access extends script.base_script
     public static final String PLAYER_INSTANCE_SCRIPT = "player.player_instance";
     public static final String REQUIRED_COLLECTION_SLOT = "heroic_axkva_min_01";
     public static final int REQUIRED_COLLECTION_COUNT = 10;
-    public static final string_id HARD_MODE_ENTER = new string_id("dummy_string_table", "Enter Axkva Min's Prison (Hard Mode)");
+    public static final String STF = "theme_park/heroic/axkva_min_hard_mode";
+    public static final string_id HARD_MODE_ENTER = new string_id(STF, "enter");
+    public static final string_id TOO_FAR = new string_id(STF, "too_far");
+    public static final string_id COLLECTION_REQUIRED = new string_id(STF, "collection_required");
 
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info item) throws InterruptedException
     {
@@ -31,12 +34,12 @@ public class axkva_door_access extends script.base_script
         }
         if (getDistance(player, self) > 6.0f)
         {
-            sendSystemMessage(player, "You are too far from the Axkva Min doorway to enter hard mode.", null);
+            sendSystemMessage(player, TOO_FAR);
             return SCRIPT_CONTINUE;
         }
         if (getCollectionSlotValue(player, REQUIRED_COLLECTION_SLOT) < REQUIRED_COLLECTION_COUNT)
         {
-            sendSystemMessage(player, "You must complete the Axkva Min defeated collection before entering hard mode.", null);
+            sendSystemMessage(player, COLLECTION_REQUIRED);
             return SCRIPT_CONTINUE;
         }
         if (!hasScript(player, PLAYER_INSTANCE_SCRIPT))

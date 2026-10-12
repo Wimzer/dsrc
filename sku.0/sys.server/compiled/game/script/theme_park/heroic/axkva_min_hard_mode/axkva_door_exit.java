@@ -9,7 +9,8 @@ import script.string_id;
 public class axkva_door_exit extends script.base_script
 {
     public static final String INSTANCE_NAME = "axkva_min_hard_mode";
-    public static final string_id HARD_MODE_EXIT = new string_id("dummy_string_table", "Exit Axkva Min Hard Mode");
+    public static final String STF = "theme_park/heroic/axkva_min_hard_mode";
+    public static final string_id HARD_MODE_EXIT = new string_id(STF, "exit");
 
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info item) throws InterruptedException
     {
