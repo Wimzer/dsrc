@@ -15,14 +15,15 @@ public class hard_mode_launcher extends script.base_script
 {
     public static final String AXKVA_HARD_MODE = "axkva_min_hard_mode";
     public static final String CONVO = "hard_mode_launcher";
+    public static final String STF = "conversation/hard_mode_launcher";
     public static final String BRANCH_ID = "conversation.hard_mode_launcher.branchId";
     public static final String PLAYER_INSTANCE_SCRIPT = "player.player_instance";
-    public static final string_id GREETING = new string_id("dummy_string_table", "Select a hard-mode test destination.");
-    public static final string_id RESPONSE_AXKVA = new string_id("dummy_string_table", "Send me to Axkva Min Hard Mode.");
-    public static final string_id RADIAL_AXKVA = new string_id("dummy_string_table", "Enter Axkva Min's Prison (Hard Mode)");
-    public static final string_id TRANSFER = new string_id("dummy_string_table", "Routing request accepted. Stand by for instance transfer.");
-    public static final string_id ADMIN_ONLY = new string_id("dummy_string_table", "This test launcher is restricted to GOD-mode administrators.");
-    public static final string_id TOO_FAR = new string_id("dummy_string_table", "Please stand closer; my vocabulator is not rated for shouting across a starport.");
+    public static final string_id GREETING = new string_id(STF, "greeting");
+    public static final string_id RESPONSE_AXKVA = new string_id(STF, "response_axkva");
+    public static final string_id RADIAL_AXKVA = new string_id(STF, "radial_axkva");
+    public static final string_id TRANSFER = new string_id(STF, "transfer");
+    public static final string_id ADMIN_ONLY = new string_id(STF, "admin_only");
+    public static final string_id TOO_FAR = new string_id(STF, "too_far");
     public static final float SAFE_X = 0.0f;
     public static final float SAFE_Y = 0.6f;
     public static final float SAFE_Z = 53.5f;
