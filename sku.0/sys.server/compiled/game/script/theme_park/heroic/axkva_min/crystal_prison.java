@@ -22,9 +22,16 @@ public class crystal_prison extends script.base_script
     }
     public void setupSelf(obj_id self) throws InterruptedException
     {
-        setMaxHitpoints(self, 50000);
-        setHitpoints(self, 50000);
+        int hitpoints = isHardModePrison(self) ? 100000 : 50000;
+        setMaxHitpoints(self, hitpoints);
+        setHitpoints(self, hitpoints);
         setInvulnerable(self, false);
+    }
+
+    private boolean isHardModePrison(obj_id self) throws InterruptedException
+    {
+        obj_id axkva = trial.getParent(self);
+        return isIdValid(axkva) && hasObjVar(axkva, "spawn_id") && "axkva_min".equals(getStringObjVar(axkva, "spawn_id")) && hasObjVar(trial.getTop(axkva), "axkva_min_hard_mode.sister_phase_started");
     }
     public int OnObjectDisabled(obj_id self, obj_id killer) throws InterruptedException
     {

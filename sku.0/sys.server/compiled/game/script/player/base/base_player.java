@@ -8306,6 +8306,7 @@ public class base_player extends script.base_script
                 "respec_voucher",
                 "mand.acknowledge",
                 respec.EXPERTISE_VERSION_OBJVAR,
+                respec.BEAST_MASTER_EXPERTISE_VERSION_OBJVAR,
                 "publish_gift",
                 "legacy",
                 temp_schematic.VAR_TEMP_SCHEMATIC_BASE,

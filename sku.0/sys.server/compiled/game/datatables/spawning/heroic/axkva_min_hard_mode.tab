@@ -1,0 +1,28 @@
+object	spawn_id	triggerId	room	loc_x	loc_y	loc_z	yaw	script	spawn_objvar	trigger_event	isInvulnerable	comment	paths	respawn
+s[required]	s[none]	s[default]	s[none]	f[0.0]	f[0.0]	f[0.0]	f[0.0]	s[none]	s[none]	s[none]	i[0]	s	s[none]	i[-1]
+heroic_axkva_nandina_hard_mode	nandina		r2	-71.3	14.2	13.5	104	theme_park.heroic.axkva_min_hard_mode.nandina		"OnExitCombat:triggerId:resetNandina,OnEnterCombat:playEmote:say:nandina_warning,OnEnterCombat:triggerId:spawn_warden,OnExitCombat:triggerId:remove_warden,OnDeath:triggerId:remove_warden"				
+heroic_axkva_gorvo_hard_mode	gorvo		r2	-67.1	14.2	27.7	120	theme_park.heroic.axkva_min_hard_mode.gorvo		OnExitCombat:triggerId:resetNandina				
+"waitForComplete:triggerId:nandina_died:nandina,gorvo"														
+object/building/heroic/axkva_min_crystal.iff	axkva_min_crystal		r2	-81.7	17.8	19.5	101							
+object/building/heroic/axkva_lelli_hi_crystal.iff	lelli_hi_crystal		r2	-82.1	17.8	15.5	80							
+object/building/heroic/axkva_kimaru_crystal.iff	kimaru_crystal		r2	-78.1	17.8	31.8	113							
+object/building/heroic/axkva_suin_chalo_crystal.iff	suin_chalo_crystal		r2	-78.9	17.9	28.1	102							
+signalMaster;startSisterPhase;none		nandina_died												
+heroic_axkva_warden	warden	spawn_warden	r2	-17.11	1.92	0.532	-89	theme_park.heroic.axkva_min.warden	int:doBurn=1					
+object/building/heroic/axkva_hall_fire.iff	hall_fire	spawn_warden	r1	13.8	0.155	0.164	0	theme_park.heroic.axkva_min.hall_fire						
+doTheaterAction:warden:chat:shout:axkva_warden_imprison_warning		spawn_warden												
+deleteSpawn:warden:none		remove_warden												
+deleteSpawn:hall_fire:none		remove_warden												
+deleteSpawn:warden:none		resetNandina												
+deleteSpawn:hall_fire:none		resetNandina												
+deleteSpawn:lelli_hi_crystal:pt_axkvamin_lightning.prt		hm_release_lelli_hi												
+delayAction:hm_spawn_lelli_hi:0.5		hm_release_lelli_hi												
+heroic_axkva_lelli_hi_hard_mode	lelli_hi	hm_spawn_lelli_hi	r2	-82.1	17.8	15.5	80	theme_park.heroic.axkva_min_hard_mode.lelli_hi			1			
+deleteSpawn:kimaru_crystal:pt_axkvamin_lightning.prt		hm_release_kimaru												
+delayAction:hm_spawn_kimaru:0.5		hm_release_kimaru												
+heroic_axkva_kimaru_hard_mode	kimaru	hm_spawn_kimaru	r2	-78.1	17.8	31.8	113	theme_park.heroic.axkva_min_hard_mode.kimaru			1			
+deleteSpawn:suin_chalo_crystal:pt_axkvamin_lightning.prt		hm_release_suin_chalo												
+delayAction:hm_spawn_suin_chalo:0.5		hm_release_suin_chalo												
+heroic_axkva_suin_chalo_hard_mode	suin_chalo	hm_spawn_suin_chalo	r2	-78.9	17.9	28.1	102	theme_park.heroic.axkva_min_hard_mode.suin_chalo			1			
+heroic_axkva_axkva_min_hard_mode	axkva_min	hm_spawn_axkva_min	r2	-81.7	17.8	19.5	101	theme_park.heroic.axkva_min_hard_mode.axkva		OnDeath:signalMaster:axkvaDied:none	1			
+deleteSpawn:axkva_min_crystal:pt_axkvamin_lightning.prt		hm_release_axkva_min												

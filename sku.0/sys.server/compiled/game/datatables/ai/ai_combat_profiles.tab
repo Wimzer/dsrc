@@ -364,3 +364,9 @@ nyms_themepark_lapaz_boss		sp_dm_8	16	100		sp_dot_1	4	100		sp_cc_dot	13	100		sp_
 nyms_themepark_barnet_boss		ig88_droideka_shield	6	100		bh_dread_strike_5	12	100		bh_dm_cc_2	12	100		of_del_ae_dm_3	12	100		bh_ae_dm_1	12	100																
 nyms_themepark_foreman_boss		sm_dm_dot_1	8	100		me_dm_dot_1	10	100		me_dm_8	12	100		bm_kick_5	12	100																				
 nyms_themepark_controller_boss		bm_bolster_armor_5	8	100		bm_flank_3	10	100		bm_siphon_3	12	100		bm_slash_1	12	100																				
+heroic_axkva_axkva_min_hard_mode		axkva_force_storm	5	100		axkva_hard_contagion	7	100		axkva_crystalize	10	100		axkva_force_whirl	12	100		axkva_ambush	6	100		lelli_chain_cleave	3	100		kimaru_generate_storm	2	100	once	kimaru_flame_patch	3	100		fs_ae_dm_cc_6	1	100	once	suin_rampage	1	100		suin_healing_debuff	4	100		nandina_heal	5	100		nandina_fester	5	100		axkva_summon_aspect	20	100		2
+heroic_axkva_lelli_hi_hard_mode		lelli_ambush	6	100		lelli_cloak_ally	10	100		lelli_chain_cleave	3	100																																														2
+heroic_axkva_kimaru_hard_mode		kimaru_generate_storm	2	100	once	kimaru_generate_storm	10	100		kimaru_flame_patch	3	100		fs_ae_dm_cc_6	1	100	once	fs_ae_dm_cc_6	15	100
+heroic_axkva_suin_chalo_hard_mode		suin_rampage	1	100		suin_healing_debuff	4	100												
+heroic_axkva_nandina_hard_mode		nandina_heal	5	100		nandina_fester	5	100												
+heroic_axkva_gorvo_hard_mode		trample_random	2	100		gorvo_shaken	8	100		bodyguard	5	100	once																																													2

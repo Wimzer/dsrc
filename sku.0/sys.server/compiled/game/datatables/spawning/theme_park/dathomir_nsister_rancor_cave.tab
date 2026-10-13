@@ -52,6 +52,6 @@ nightsister_elder		r11	-89.99	-101.02	-105.03	theme_park.dungeon.generic_death	-
 nightsister_spell_weaver		r11	-91.27	-101.06	-106.68	theme_park.dungeon.generic_death	31	conversation	909
 nightsister_spell_weaver		r11	-88	-101	-106	theme_park.dungeon.generic_death	-89	nervous	909
 nightsister_enraged_bull_rancor	a Nightsister enraged bull rancor	r11	-81.04	-99.5	-96.16	theme_park.dungeon.generic_death	-137		909
-object/tangible/door/heroic_axkva_min_door.iff		r11	-91.0384	-101	-102.707		180		0
+object/tangible/door/heroic_axkva_min_door.iff		r11	-91.0384	-101	-102.707	theme_park.heroic.axkva_min_hard_mode.axkva_door_access	180		0
 object/tangible/quest/township/axkva_nightsister_skull.iff		r5	47.5	-54.5	-155.6		-37		0
 object/tangible/quest/township/axkva_pedastal.iff		r5	47.5	-58.35	-155.6		-37		0

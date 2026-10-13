@@ -15,8 +15,31 @@ public class combat_actions extends script.systems.combat.combat_base {
     public static String DEFAULT_EGG = "object/tangible/gravestone/gravestone05.tpf";
     public static final String COMBAT_TABLE = "datatables/combat/combat_data.iff";
     public static final float DAMAGE_STRENGTH_CUTOFF = 0.5f;
+    private static final String AXKVA_HARD_CLOAKED_AMBUSH = "axkva_min_hard_mode.cloaked_ambush";
+    private static final String AXKVA_HARD_CLOAKED_AMBUSH_ACTION = "axkva_min_hard_mode.cloaked_ambush_action";
+    private static final String AXKVA_HARD_CLOAKED_NPC = "axkva_min_hard_mode.cloaked_npc";
+    private static final String AXKVA_HARD_ALLY_CLOAK = "axkva_min_hard_mode.ally_cloak";
+    private static final String AXKVA_HARD_ALLY_PROTECTION = "axkva_min_hard_mode.ally_cloak_protection";
+    private static final String AXKVA_HARD_ALLY_PROTECTION_WRITE = "axkva_min_hard_mode.ally_cloak_protection_write";
+    private static final String AXKVA_HARD_ALLY_ATTACK_OVERRIDE = "axkva_min_hard_mode.ally_cloak_attack_override";
+    private static final String AXKVA_HARD_ALLY_EXIT_TRIGGERS = "axkva_min_hard_mode.ally_cloak_exit_triggers";
+    private static final String AXKVA_HARD_ALLY_LINKED_GORVO = "axkva_min_hard_mode.ally_cloak_linked_gorvo";
+    private static final String AXKVA_HARD_ALLY_CLOAK_TOKEN = "axkva_min_hard_mode.ally_cloak_token";
+    private static final String AXKVA_HARD_LELLI_AMBUSH = "axkva_min_hard_mode.lelli_ambush";
+    private static final String AXKVA_HARD_LELLI_AMBUSH_TOKEN = "axkva_min_hard_mode.lelli_ambush_token";
+    private static final String AXKVA_HARD_CLOAK_WAS_IN_COMBAT = "axkva_min_hard_mode.cloak_was_in_combat";
+    private static final String AXKVA_HARD_CLOAK_HATE_TARGETS = "axkva_min_hard_mode.cloak_hate_targets";
+    private static final String AXKVA_HARD_CLOAK_HATE_VALUES = "axkva_min_hard_mode.cloak_hate_values";
+    private static final String AXKVA_HARD_CLOAK_PRIMARY_TARGET = "axkva_min_hard_mode.cloak_primary_target";
+    private static final String AXKVA_HARD_CONTAGION_CASTER = "axkva_min_hard_mode.contagion_caster";
+    private static final String AXKVA_HARD_CONTAGION_TOP = "axkva_min_hard_mode.contagion_top";
+    private static final String AXKVA_HARD_CONTAGION_SESSION = "axkva_min_hard_mode.contagion_session";
 
     public int OnChangedPosture(obj_id self, int oldPosture, int newPosture) throws InterruptedException {
+        if (newPosture == POSTURE_INCAPACITATED || newPosture == POSTURE_DEAD) {
+            restoreHardModeAllyCloak(self);
+            restoreHardModeLelliAmbush(self);
+        }
         if (newPosture == POSTURE_INCAPACITATED || newPosture == POSTURE_DEAD || newPosture == POSTURE_KNOCKED_DOWN) {
             return SCRIPT_CONTINUE;
         }
@@ -10257,26 +10280,52 @@ public class combat_actions extends script.systems.combat.combat_base {
     }
 
     public int nandina_heal(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
-        obj_id[] spawn_id = trial.getObjectsInDungeonWithObjVar(trial.getTop(self), "spawn_id");
+        obj_id top = trial.getTop(self);
+        boolean hardMode = isAxkvaHardMode(self);
+        obj_id[] spawn_id = trial.getObjectsInDungeonWithObjVar(top, "spawn_id");
         if (spawn_id == null || spawn_id.length == 0) {
             return SCRIPT_CONTINUE;
         }
-        obj_id gorvo = null;
-        for (obj_id obj_id : spawn_id) {
-            if ((getStringObjVar(obj_id, "spawn_id")).equals("gorvo")) {
-                gorvo = obj_id;
+        obj_id healTarget = obj_id.NULL_ID;
+        if (hardMode) {
+            int mostMissingHealth = 0;
+            for (obj_id object : spawn_id) {
+                if (!isIdValid(object) || ai_lib.isDead(object) || !isNandinaHardModeHealTarget(getStringObjVar(object, "spawn_id"))) {
+                    continue;
+                }
+                int missingHealth = getMaxHealth(object) - getHealth(object);
+                if (missingHealth > mostMissingHealth) {
+                    mostMissingHealth = missingHealth;
+                    healTarget = object;
+                }
+            }
+        } else {
+            for (obj_id object : spawn_id) {
+                if ((getStringObjVar(object, "spawn_id")).equals("gorvo")) {
+                    healTarget = object;
+                }
             }
         }
-        if (!isIdValid(gorvo) || ai_lib.isDead(gorvo)) {
+        if (!isIdValid(healTarget) || ai_lib.isDead(healTarget)) {
             return SCRIPT_CONTINUE;
         }
-        int healingReduction = getEnhancedSkillStatisticModifierUncapped(gorvo, "expertise_healing_reduction");
+        int healingReduction = getEnhancedSkillStatisticModifierUncapped(healTarget, "expertise_healing_reduction");
         float redux = healingReduction / (healingReduction + 75.0f);
-        int toHeal = (int) (50000.0f - (50000.0f * redux));
+        float baseHeal = hardMode ? 100000.0f : 50000.0f;
+        int toHeal = (int) (baseHeal - (baseHeal * redux));
         toHeal = toHeal < 1 ? 1 : toHeal;
-        healing.healDamage(gorvo, HEALTH, toHeal);
-        playClientEffectLoc(gorvo, "clienteffect/bacta_bomb.cef", getLocation(target), 0);
+        healing.healDamage(healTarget, HEALTH, toHeal);
+        playClientEffectLoc(healTarget, "clienteffect/bacta_bomb.cef", getLocation(healTarget), 0);
         return SCRIPT_CONTINUE;
+    }
+
+    private boolean isNandinaHardModeHealTarget(String spawnId) throws InterruptedException {
+        return "nandina".equals(spawnId) || "lelli_hi".equals(spawnId) || "kimaru".equals(spawnId) || "suin_chalo".equals(spawnId) || "axkva_min".equals(spawnId) || "gorvo".equals(spawnId);
+    }
+
+    private boolean isAxkvaHardMode(obj_id self) throws InterruptedException {
+        obj_id top = trial.getTop(self);
+        return isIdValid(top) && "axkva_min_hard_mode".equals(instance.getInstanceName(top));
     }
 
     public int lelli_bleed(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
@@ -10287,11 +10336,26 @@ public class combat_actions extends script.systems.combat.combat_base {
     }
 
     public int lelli_ambush(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (hasObjVar(trial.getTop(self), "axkva_min_hard_mode.sister_phase_started")) {
+            startHardModeLelliAmbush(self);
+            return SCRIPT_CONTINUE;
+        }
         setInvulnerable(self, true);
         setCreatureCoverVisibility(self, false);
         utils.setScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE, "null_attack");
         messageTo(self, "dropMines", trial.getSessionDict(self, "ambush"), 1.0f, false);
         messageTo(self, "performAmbush", trial.getSessionDict(self, "ambush"), 2.0f, false);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int axkva_ambush(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (hasObjVar(trial.getTop(self), "axkva_min_hard_mode.sister_phase_started")) {
+            startHardModeCloakedAmbush(self, "axkva_ambush");
+            return SCRIPT_CONTINUE;
+        }
+        if (!combatStandardAction("axkva_ambush", self, target, params, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
         return SCRIPT_CONTINUE;
     }
 
@@ -10480,7 +10544,20 @@ public class combat_actions extends script.systems.combat.combat_base {
     }
 
     public int nandina_fester(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
-        if (!combatStandardAction("nandina_fester", self, target, params, "", "")) {
+        String actionName = isAxkvaHardMode(self) ? "nandina_fester_hard_mode" : "nandina_fester";
+        String actionParams = params;
+        if ("nandina_fester_hard_mode".equals(actionName) && isIdValid(target)) {
+            location loc = getLocation(target);
+            actionParams = "" + loc.x + " " + loc.y + " " + loc.z + " " + loc.cell + " " + loc.x + " " + loc.y + " " + loc.z;
+        }
+        if (!combatStandardAction(actionName, self, target, actionParams, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int gorvo_shaken(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (!combatStandardAction("gorvo_shaken", self, target, params, "", "")) {
             return SCRIPT_OVERRIDE;
         }
         return SCRIPT_CONTINUE;
@@ -10488,10 +10565,13 @@ public class combat_actions extends script.systems.combat.combat_base {
 
     public int lelli_mine(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
         obj_id[] hateList = getHateList(self);
+        if (hateList == null || hateList.length == 0) {
+            return SCRIPT_CONTINUE;
+        }
         Vector vectorList = new Vector(Arrays.asList(hateList));
         vectorList = utils.shuffleArray(vectorList);
-        for (int i = 0; i < hateList.length && i < 4; i++) {
-            combatStandardAction("lelli_mine", self, hateList[i], params, "", "");
+        for (int i = 0; i < vectorList.size() && i < 4; i++) {
+            combatStandardAction("lelli_mine", self, (obj_id) vectorList.get(i), params, "", "");
         }
         return SCRIPT_CONTINUE;
     }
@@ -10512,10 +10592,14 @@ public class combat_actions extends script.systems.combat.combat_base {
 
     public int kimaru_generate_storm(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
         obj_id[] hateList = getHateList(self);
-        location loc1 = new location(-63.6f, 16.0f, 36.4f, "dungeon1", getCellId(trial.getTop(self), "r2"));
-        location loc2 = new location(-69.8f, 15.0f, 9.6f, "dungeon1", getCellId(trial.getTop(self), "r2"));
-        location loc3 = new location(-44.4f, 9.0f, 1.5f, "dungeon1", getCellId(trial.getTop(self), "r2"));
-        location loc4 = new location(-42.7f, 10.3f, 20.9f, "dungeon1", getCellId(trial.getTop(self), "r2"));
+        if (hateList == null || hateList.length == 0) {
+            return SCRIPT_CONTINUE;
+        }
+        String sceneName = getLocation(self).area;
+        location loc1 = new location(-63.6f, 16.0f, 36.4f, sceneName, getCellId(trial.getTop(self), "r2"));
+        location loc2 = new location(-69.8f, 15.0f, 9.6f, sceneName, getCellId(trial.getTop(self), "r2"));
+        location loc3 = new location(-44.4f, 9.0f, 1.5f, sceneName, getCellId(trial.getTop(self), "r2"));
+        location loc4 = new location(-42.7f, 10.3f, 20.9f, sceneName, getCellId(trial.getTop(self), "r2"));
         location[] locList
                 = {
                     loc1,
@@ -10525,6 +10609,9 @@ public class combat_actions extends script.systems.combat.combat_base {
                 };
         for (int i = 0; i < 4; i++) {
             obj_id storm = create.object("kimaru_force_storm", locList[i]);
+            if (!isIdValid(storm)) {
+                continue;
+            }
             playClientEffectLoc(hateList[0], "appearance/pt_kimaru_force_storm_birth.prt", locList[i], 0.0f);
             setMaster(storm, self);
             utils.setScriptVar(storm, trial.KIMARU_HATE_LIST, hateList);
@@ -10534,12 +10621,475 @@ public class combat_actions extends script.systems.combat.combat_base {
 
     public int kimaru_flame_patch(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
         obj_id[] hateList = getHateList(self);
+        if (hateList == null || hateList.length == 0) {
+            return SCRIPT_CONTINUE;
+        }
         location loc = getLocation(hateList[rand(0, hateList.length - 1)]);
         String targetLoc = "" + loc.x + " " + loc.y + " " + loc.z + " " + loc.cell + " " + loc.x + " " + loc.y + " " + loc.z;
         if (!combatStandardAction("kimaru_flame_patch", self, target, targetLoc, "", "")) {
             return SCRIPT_OVERRIDE;
         }
         return SCRIPT_CONTINUE;
+    }
+
+    public int lelli_cloak_ally(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        obj_id ally = getRandomHardModeAlly(self);
+        if (!isIdValid(ally)) {
+            return SCRIPT_CONTINUE;
+        }
+        startHardModeAllyCloak(ally);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int OnInvulnerableChanged(obj_id self, boolean invulnerable) throws InterruptedException {
+        if ((utils.hasScriptVar(self, AXKVA_HARD_ALLY_CLOAK) || utils.hasScriptVar(self, AXKVA_HARD_LELLI_AMBUSH)) && !utils.hasScriptVar(self, AXKVA_HARD_ALLY_PROTECTION_WRITE)) {
+            utils.setScriptVar(self, AXKVA_HARD_ALLY_PROTECTION, invulnerable);
+            if (!invulnerable) {
+                utils.setScriptVar(self, AXKVA_HARD_ALLY_PROTECTION_WRITE, true);
+                try {
+                    setInvulnerable(self, true);
+                } finally {
+                    utils.removeScriptVar(self, AXKVA_HARD_ALLY_PROTECTION_WRITE);
+                }
+            }
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public static boolean isHardModeAllyCloaked(obj_id actor) throws InterruptedException {
+        return isIdValid(actor) && exists(actor) && utils.hasScriptVar(actor, AXKVA_HARD_ALLY_CLOAK);
+    }
+
+    public static boolean isHardModeLelliAmbushing(obj_id actor) throws InterruptedException {
+        return isIdValid(actor) && exists(actor) && utils.hasScriptVar(actor, AXKVA_HARD_LELLI_AMBUSH);
+    }
+
+    private void startHardModeAllyCloak(obj_id ally) throws InterruptedException {
+        if (!isIdValid(ally) || !exists(ally) || ai_lib.isDead(ally) || !reserveHardModeNpcCloak(ally)) {
+            return;
+        }
+        obj_id top = trial.getTop(ally);
+        trial.bumpSession(ally, "hard_mode_cloaked_ambush");
+        trial.bumpSession(ally, AXKVA_HARD_ALLY_CLOAK);
+        utils.setScriptVar(ally, AXKVA_HARD_ALLY_CLOAK_TOKEN, trial.getSession(ally, AXKVA_HARD_ALLY_CLOAK));
+        captureHardModeCloakCombat(ally);
+        utils.setScriptVar(ally, AXKVA_HARD_ALLY_PROTECTION, isInvulnerable(ally));
+        if (utils.hasScriptVar(ally, combat.DEFAULT_ATTACK_OVERRIDE)) {
+            utils.setScriptVar(ally, AXKVA_HARD_ALLY_ATTACK_OVERRIDE, utils.getStringScriptVar(ally, combat.DEFAULT_ATTACK_OVERRIDE));
+        }
+        utils.setScriptVar(ally, AXKVA_HARD_ALLY_CLOAK, true);
+        suspendHardModeExitCombatTriggers(ally);
+        utils.setScriptVar(ally, combat.DEFAULT_ATTACK_OVERRIDE, "null_attack");
+        utils.setScriptVar(ally, AXKVA_HARD_ALLY_PROTECTION_WRITE, true);
+        try {
+            setInvulnerable(ally, true);
+        } finally {
+            utils.removeScriptVar(ally, AXKVA_HARD_ALLY_PROTECTION_WRITE);
+        }
+        setCreatureCoverVisibility(ally, false);
+        dictionary pending = trial.getSessionDict(ally, AXKVA_HARD_ALLY_CLOAK);
+        pending.put("top", top);
+        pending.put("attempt", trial.getSession(top, "axkva_min_hard_mode"));
+        messageTo(ally, "performHardModeAllyAmbush", pending, 2.0f, false);
+        messageTo(ally, "recoverHardModeAllyCloak", pending, 6.0f, false);
+    }
+
+    public int performHardModeAllyAmbush(obj_id self, dictionary params) throws InterruptedException {
+        if (!isCurrentHardModeCloakCallback(self, params, AXKVA_HARD_ALLY_CLOAK, AXKVA_HARD_ALLY_CLOAK_TOKEN)) {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id top = trial.getTop(self);
+        boolean currentAttempt = isIdValid(top) && top == params.getObjId("top") && trial.getSession(top, "axkva_min_hard_mode") == params.getInt("attempt");
+        boolean canAttack = currentAttempt && !ai_lib.isDead(self);
+        obj_id target = restoreHardModeAllyCloak(self);
+        if (!canAttack || !isIdValid(target) || !exists(target) || ai_lib.isDead(target)) {
+            return SCRIPT_CONTINUE;
+        }
+        setLocation(self, getLocation(target));
+        combatStandardAction("axkva_ambush", self, target, "", "", "");
+        return SCRIPT_CONTINUE;
+    }
+
+    public int recoverHardModeAllyCloak(obj_id self, dictionary params) throws InterruptedException {
+        if (isCurrentHardModeCloakCallback(self, params, AXKVA_HARD_ALLY_CLOAK, AXKVA_HARD_ALLY_CLOAK_TOKEN)) {
+            restoreHardModeAllyCloak(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    private obj_id restoreHardModeAllyCloak(obj_id ally) throws InterruptedException {
+        if (!isIdValid(ally) || !exists(ally) || !utils.hasScriptVar(ally, AXKVA_HARD_ALLY_CLOAK)) {
+            return obj_id.NULL_ID;
+        }
+        trial.bumpSession(ally, AXKVA_HARD_ALLY_CLOAK);
+        boolean protectedState = utils.getBooleanScriptVar(ally, AXKVA_HARD_ALLY_PROTECTION);
+        utils.removeScriptVar(ally, AXKVA_HARD_ALLY_CLOAK);
+        utils.removeScriptVar(ally, AXKVA_HARD_ALLY_CLOAK_TOKEN);
+        if (utils.hasScriptVar(ally, AXKVA_HARD_ALLY_ATTACK_OVERRIDE)) {
+            utils.setScriptVar(ally, combat.DEFAULT_ATTACK_OVERRIDE, utils.getStringScriptVar(ally, AXKVA_HARD_ALLY_ATTACK_OVERRIDE));
+        } else {
+            utils.removeScriptVar(ally, combat.DEFAULT_ATTACK_OVERRIDE);
+        }
+        utils.removeScriptVar(ally, AXKVA_HARD_ALLY_ATTACK_OVERRIDE);
+        utils.removeScriptVar(ally, AXKVA_HARD_ALLY_PROTECTION);
+        utils.removeScriptVar(ally, AXKVA_HARD_ALLY_PROTECTION_WRITE);
+        setInvulnerable(ally, protectedState);
+        setCreatureCoverVisibility(ally, true);
+        restoreHardModeExitCombatTriggers(ally);
+        releaseHardModeNpcCloak(ally);
+        return restoreHardModeCloakCombat(ally);
+    }
+
+    private void startHardModeLelliAmbush(obj_id self) throws InterruptedException {
+        if (!isIdValid(self) || !exists(self) || ai_lib.isDead(self) || utils.hasScriptVar(self, AXKVA_HARD_LELLI_AMBUSH)) {
+            return;
+        }
+        captureHardModeCloakCombat(self);
+        trial.bumpSession(self, "ambush");
+        utils.setScriptVar(self, AXKVA_HARD_LELLI_AMBUSH_TOKEN, trial.getSession(self, "ambush"));
+        utils.setScriptVar(self, AXKVA_HARD_ALLY_PROTECTION, isInvulnerable(self));
+        if (utils.hasScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE)) {
+            utils.setScriptVar(self, AXKVA_HARD_ALLY_ATTACK_OVERRIDE, utils.getStringScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE));
+        }
+        utils.setScriptVar(self, AXKVA_HARD_LELLI_AMBUSH, true);
+        utils.setScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE, "null_attack");
+        utils.setScriptVar(self, AXKVA_HARD_ALLY_PROTECTION_WRITE, true);
+        try {
+            setInvulnerable(self, true);
+        } finally {
+            utils.removeScriptVar(self, AXKVA_HARD_ALLY_PROTECTION_WRITE);
+        }
+        setCreatureCoverVisibility(self, false);
+        obj_id top = trial.getTop(self);
+        dictionary pending = trial.getSessionDict(self, "ambush");
+        pending.put("top", top);
+        pending.put("attempt", trial.getSession(top, "axkva_min_hard_mode"));
+        messageTo(self, "dropHardModeLelliMines", pending, 1.0f, false);
+        messageTo(self, "performHardModeLelliAmbush", pending, 2.0f, false);
+        messageTo(self, "recoverHardModeLelliAmbush", pending, 6.0f, false);
+    }
+
+    public int dropHardModeLelliMines(obj_id self, dictionary params) throws InterruptedException {
+        if (!isCurrentHardModeCloakCallback(self, params, AXKVA_HARD_LELLI_AMBUSH, AXKVA_HARD_LELLI_AMBUSH_TOKEN)) {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id top = trial.getTop(self);
+        if (!isIdValid(top) || top != params.getObjId("top") || trial.getSession(top, "axkva_min_hard_mode") != params.getInt("attempt")) {
+            return SCRIPT_CONTINUE;
+        }
+        queueCommand(self, (1876436203), getTarget(self), "", COMMAND_PRIORITY_DEFAULT);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int performHardModeLelliAmbush(obj_id self, dictionary params) throws InterruptedException {
+        if (!isCurrentHardModeCloakCallback(self, params, AXKVA_HARD_LELLI_AMBUSH, AXKVA_HARD_LELLI_AMBUSH_TOKEN)) {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id top = trial.getTop(self);
+        boolean currentAttempt = isIdValid(top) && top == params.getObjId("top") && trial.getSession(top, "axkva_min_hard_mode") == params.getInt("attempt");
+        obj_id target = restoreHardModeLelliAmbush(self);
+        if (currentAttempt && isIdValid(target) && exists(target) && !ai_lib.isDead(target)) {
+            setLocation(self, getLocation(target));
+            queueCommand(self, (1420167995), target, "", COMMAND_PRIORITY_DEFAULT);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int recoverHardModeLelliAmbush(obj_id self, dictionary params) throws InterruptedException {
+        if (isCurrentHardModeCloakCallback(self, params, AXKVA_HARD_LELLI_AMBUSH, AXKVA_HARD_LELLI_AMBUSH_TOKEN)) {
+            restoreHardModeLelliAmbush(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    private obj_id restoreHardModeLelliAmbush(obj_id self) throws InterruptedException {
+        if (!isIdValid(self) || !exists(self) || !utils.hasScriptVar(self, AXKVA_HARD_LELLI_AMBUSH)) {
+            return obj_id.NULL_ID;
+        }
+        trial.bumpSession(self, "ambush");
+        boolean protectedState = utils.getBooleanScriptVar(self, AXKVA_HARD_ALLY_PROTECTION);
+        utils.removeScriptVar(self, AXKVA_HARD_LELLI_AMBUSH);
+        utils.removeScriptVar(self, AXKVA_HARD_LELLI_AMBUSH_TOKEN);
+        if (utils.hasScriptVar(self, AXKVA_HARD_ALLY_ATTACK_OVERRIDE)) {
+            utils.setScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE, utils.getStringScriptVar(self, AXKVA_HARD_ALLY_ATTACK_OVERRIDE));
+        } else {
+            utils.removeScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE);
+        }
+        utils.removeScriptVar(self, AXKVA_HARD_ALLY_ATTACK_OVERRIDE);
+        utils.removeScriptVar(self, AXKVA_HARD_ALLY_PROTECTION);
+        utils.removeScriptVar(self, AXKVA_HARD_ALLY_PROTECTION_WRITE);
+        setInvulnerable(self, protectedState);
+        setCreatureCoverVisibility(self, true);
+        return restoreHardModeCloakCombat(self);
+    }
+
+    private boolean isCurrentHardModeCloakCallback(obj_id actor, dictionary params, String marker, String tokenKey) throws InterruptedException {
+        if (params == null || !utils.hasScriptVar(actor, marker) || !utils.hasScriptVar(actor, tokenKey)) {
+            return false;
+        }
+        String sessionKey = marker.equals(AXKVA_HARD_LELLI_AMBUSH) ? "ambush" : AXKVA_HARD_ALLY_CLOAK;
+        int passedToken = params.getInt(trial.MESSAGE_SESSION + "." + sessionKey);
+        return passedToken == utils.getIntScriptVar(actor, tokenKey);
+    }
+
+    private void captureHardModeCloakCombat(obj_id actor) throws InterruptedException {
+        utils.setScriptVar(actor, AXKVA_HARD_CLOAK_WAS_IN_COMBAT, ai_lib.isInCombat(actor));
+        obj_id[] hateList = getHateList(actor);
+        if (hateList == null || hateList.length == 0) {
+            return;
+        }
+        float[] hateValues = new float[hateList.length];
+        for (int i = 0; i < hateList.length; i++) {
+            hateValues[i] = getHate(actor, hateList[i]);
+        }
+        utils.setScriptVar(actor, AXKVA_HARD_CLOAK_HATE_TARGETS, hateList);
+        utils.setScriptVar(actor, AXKVA_HARD_CLOAK_HATE_VALUES, hateValues);
+        obj_id primaryTarget = getHateTarget(actor);
+        if (isIdValid(primaryTarget)) {
+            utils.setScriptVar(actor, AXKVA_HARD_CLOAK_PRIMARY_TARGET, primaryTarget);
+        }
+    }
+
+    private obj_id restoreHardModeCloakCombat(obj_id actor) throws InterruptedException {
+        boolean wasInCombat = utils.hasScriptVar(actor, AXKVA_HARD_CLOAK_WAS_IN_COMBAT) && utils.getBooleanScriptVar(actor, AXKVA_HARD_CLOAK_WAS_IN_COMBAT);
+        obj_id target = obj_id.NULL_ID;
+        if (wasInCombat && utils.hasScriptVar(actor, AXKVA_HARD_CLOAK_HATE_TARGETS)) {
+            obj_id[] hateList = utils.getObjIdArrayScriptVar(actor, AXKVA_HARD_CLOAK_HATE_TARGETS);
+            float[] hateValues = utils.hasScriptVar(actor, AXKVA_HARD_CLOAK_HATE_VALUES) ? utils.getFloatArrayScriptVar(actor, AXKVA_HARD_CLOAK_HATE_VALUES) : null;
+            obj_id primaryTarget = utils.hasScriptVar(actor, AXKVA_HARD_CLOAK_PRIMARY_TARGET) ? utils.getObjIdScriptVar(actor, AXKVA_HARD_CLOAK_PRIMARY_TARGET) : obj_id.NULL_ID;
+            float highestHate = -Float.MAX_VALUE;
+            boolean primaryTargetRestored = false;
+            if (hateList != null) {
+                for (int i = 0; i < hateList.length; i++) {
+                    obj_id hated = hateList[i];
+                    if (!isIdValid(hated) || !exists(hated) || ai_lib.isDead(hated)) {
+                        continue;
+                    }
+                    float hate = hateValues != null && i < hateValues.length ? hateValues[i] : 1.0f;
+                    setHate(actor, hated, hate);
+                    if (hated == primaryTarget) {
+                        primaryTargetRestored = true;
+                    }
+                    if (!isIdValid(target) || hate > highestHate) {
+                        target = hated;
+                        highestHate = hate;
+                    }
+                }
+            }
+            if (primaryTargetRestored) {
+                target = primaryTarget;
+            }
+        }
+        clearHardModeCloakCombat(actor);
+        if (wasInCombat && isIdValid(target) && !ai_lib.isDead(actor)) {
+            startCombat(actor, target);
+        }
+        return target;
+    }
+
+    private void clearHardModeCloakCombat(obj_id actor) throws InterruptedException {
+        utils.removeScriptVar(actor, AXKVA_HARD_CLOAK_WAS_IN_COMBAT);
+        utils.removeScriptVar(actor, AXKVA_HARD_CLOAK_HATE_TARGETS);
+        utils.removeScriptVar(actor, AXKVA_HARD_CLOAK_HATE_VALUES);
+        utils.removeScriptVar(actor, AXKVA_HARD_CLOAK_PRIMARY_TARGET);
+    }
+
+    private void suspendHardModeExitCombatTriggers(obj_id ally) throws InterruptedException {
+        suspendHardModeExitCombatTriggersForActor(ally);
+        if (!"nandina".equals(getStringObjVar(ally, "spawn_id"))) {
+            return;
+        }
+        obj_id gorvo = getHardModeActorBySpawnId(trial.getTop(ally), "gorvo");
+        if (isIdValid(gorvo)) {
+            suspendHardModeExitCombatTriggersForActor(gorvo);
+            utils.setScriptVar(ally, AXKVA_HARD_ALLY_LINKED_GORVO, gorvo);
+        }
+    }
+
+    private void suspendHardModeExitCombatTriggersForActor(obj_id actor) throws InterruptedException {
+        if (!isIdValid(actor) || !exists(actor) || utils.hasScriptVar(actor, AXKVA_HARD_ALLY_EXIT_TRIGGERS) || !utils.hasScriptVar(actor, restuss_event.TRIG_EXITCOMBAT)) {
+            return;
+        }
+        Vector triggers = utils.getResizeableStringArrayScriptVar(actor, restuss_event.TRIG_EXITCOMBAT);
+        utils.setScriptVar(actor, AXKVA_HARD_ALLY_EXIT_TRIGGERS, triggers);
+        utils.removeScriptVar(actor, restuss_event.TRIG_EXITCOMBAT);
+    }
+
+    private void restoreHardModeExitCombatTriggers(obj_id ally) throws InterruptedException {
+        restoreHardModeExitCombatTriggersForActor(ally);
+        if (utils.hasScriptVar(ally, AXKVA_HARD_ALLY_LINKED_GORVO)) {
+            obj_id gorvo = utils.getObjIdScriptVar(ally, AXKVA_HARD_ALLY_LINKED_GORVO);
+            restoreHardModeExitCombatTriggersForActor(gorvo);
+            utils.removeScriptVar(ally, AXKVA_HARD_ALLY_LINKED_GORVO);
+        }
+    }
+
+    private void restoreHardModeExitCombatTriggersForActor(obj_id actor) throws InterruptedException {
+        if (!isIdValid(actor) || !exists(actor) || !utils.hasScriptVar(actor, AXKVA_HARD_ALLY_EXIT_TRIGGERS)) {
+            return;
+        }
+        Vector triggers = utils.getResizeableStringArrayScriptVar(actor, AXKVA_HARD_ALLY_EXIT_TRIGGERS);
+        utils.removeScriptVar(actor, AXKVA_HARD_ALLY_EXIT_TRIGGERS);
+        utils.setScriptVar(actor, restuss_event.TRIG_EXITCOMBAT, triggers);
+    }
+
+    private obj_id getHardModeActorBySpawnId(obj_id top, String spawnId) throws InterruptedException {
+        obj_id[] objects = trial.getObjectsInDungeonWithObjVar(top, "spawn_id");
+        if (objects == null || objects.length == 0) {
+            return obj_id.NULL_ID;
+        }
+        for (obj_id object : objects) {
+            if (isIdValid(object) && exists(object) && spawnId.equals(getStringObjVar(object, "spawn_id"))) {
+                return object;
+            }
+        }
+        return obj_id.NULL_ID;
+    }
+
+    public int revealCloakedAlly(obj_id self, dictionary params) throws InterruptedException {
+        obj_id ally = params.getObjId("ally");
+        if (isIdValid(ally) && exists(ally) && !ai_lib.isDead(ally)) {
+            setCreatureCoverVisibility(ally, true);
+            utils.removeScriptVar(ally, combat.DEFAULT_ATTACK_OVERRIDE);
+            utils.removeScriptVar(ally, AXKVA_HARD_CLOAKED_AMBUSH);
+            utils.removeScriptVar(ally, AXKVA_HARD_CLOAKED_AMBUSH_ACTION);
+            releaseHardModeNpcCloak(ally);
+            setInvulnerable(ally, false);
+            keepHardModeActorInCombat(ally);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int performHardModeCloakedAmbush(obj_id self, dictionary params) throws InterruptedException {
+        if (!trial.verifySession(self, params, "hard_mode_cloaked_ambush")) {
+            return SCRIPT_CONTINUE;
+        }
+        if (!isIdValid(self) || ai_lib.isDead(self)) {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id target = keepHardModeActorInCombat(self);
+        String actionName = utils.hasScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH_ACTION) ? utils.getStringScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH_ACTION) : "axkva_ambush";
+        setCreatureCoverVisibility(self, true);
+        utils.removeScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE);
+        utils.removeScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH);
+        utils.removeScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH_ACTION);
+        releaseHardModeNpcCloak(self);
+        setInvulnerable(self, false);
+        if (isIdValid(target)) {
+            setLocation(self, getLocation(target));
+            combatStandardAction(actionName, self, target, "", "", "");
+        }
+        keepHardModeActorInCombat(self);
+        return SCRIPT_CONTINUE;
+    }
+
+    private void startHardModeCloakedAmbush(obj_id self, String actionName) throws InterruptedException {
+        if (!reserveHardModeNpcCloak(self)) {
+            return;
+        }
+        trial.bumpSession(self, "hard_mode_cloaked_ambush");
+        setInvulnerable(self, true);
+        setCreatureCoverVisibility(self, false);
+        utils.setScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH, true);
+        utils.setScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH_ACTION, actionName);
+        utils.setScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE, "null_attack");
+        keepHardModeActorInCombat(self);
+        dictionary dict = trial.getSessionDict(self, "hard_mode_cloaked_ambush");
+        messageTo(self, "performHardModeCloakedAmbush", dict, 2.0f, false);
+        messageTo(self, "revealHardModeCloakedAmbush", dict, 6.0f, false);
+    }
+
+    public int revealHardModeCloakedAmbush(obj_id self, dictionary params) throws InterruptedException {
+        if (!trial.verifySession(self, params, "hard_mode_cloaked_ambush")) {
+            return SCRIPT_CONTINUE;
+        }
+        if (isIdValid(self) && exists(self) && !ai_lib.isDead(self)) {
+            setCreatureCoverVisibility(self, true);
+            utils.removeScriptVar(self, combat.DEFAULT_ATTACK_OVERRIDE);
+            utils.removeScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH);
+            utils.removeScriptVar(self, AXKVA_HARD_CLOAKED_AMBUSH_ACTION);
+            releaseHardModeNpcCloak(self);
+            setInvulnerable(self, false);
+            keepHardModeActorInCombat(self);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    private boolean reserveHardModeNpcCloak(obj_id actor) throws InterruptedException {
+        obj_id top = trial.getTop(actor);
+        if (!isIdValid(top)) {
+            return false;
+        }
+        if (utils.hasScriptVar(top, AXKVA_HARD_CLOAKED_NPC)) {
+            obj_id cloaked = utils.getObjIdScriptVar(top, AXKVA_HARD_CLOAKED_NPC);
+            if (isIdValid(cloaked) && exists(cloaked) && !ai_lib.isDead(cloaked) && (utils.hasScriptVar(cloaked, AXKVA_HARD_CLOAKED_AMBUSH) || utils.hasScriptVar(cloaked, AXKVA_HARD_ALLY_CLOAK))) {
+                return false;
+            }
+            utils.removeScriptVar(top, AXKVA_HARD_CLOAKED_NPC);
+        }
+        utils.setScriptVar(top, AXKVA_HARD_CLOAKED_NPC, actor);
+        return true;
+    }
+
+    private void releaseHardModeNpcCloak(obj_id actor) throws InterruptedException {
+        obj_id top = trial.getTop(actor);
+        if (!isIdValid(top) || !utils.hasScriptVar(top, AXKVA_HARD_CLOAKED_NPC)) {
+            return;
+        }
+        obj_id cloaked = utils.getObjIdScriptVar(top, AXKVA_HARD_CLOAKED_NPC);
+        if (cloaked == actor) {
+            utils.removeScriptVar(top, AXKVA_HARD_CLOAKED_NPC);
+        }
+    }
+
+    private obj_id keepHardModeActorInCombat(obj_id actor) throws InterruptedException {
+        if (!isIdValid(actor) || !exists(actor) || ai_lib.isDead(actor)) {
+            return obj_id.NULL_ID;
+        }
+        obj_id target = combat.getRandomHateTarget(actor);
+        if (isIdValid(target) && exists(target) && !ai_lib.isDead(target)) {
+            addHate(actor, target, 100.0f);
+            startCombat(actor, target);
+            return target;
+        }
+        obj_id[] players = trial.getPlayersInDungeon(trial.getTop(actor));
+        if (players == null || players.length == 0) {
+            return obj_id.NULL_ID;
+        }
+        for (obj_id player : players) {
+            if (isIdValid(player) && exists(player) && !ai_lib.isDead(player)) {
+                addHate(actor, player, 100.0f);
+                if (!isIdValid(target)) {
+                    target = player;
+                }
+            }
+        }
+        if (isIdValid(target)) {
+            startCombat(actor, target);
+        }
+        return target;
+    }
+
+    private obj_id getRandomHardModeAlly(obj_id self) throws InterruptedException {
+        obj_id top = trial.getTop(self);
+        obj_id[] objects = trial.getObjectsInDungeonWithObjVar(top, "spawn_id");
+        if (objects == null || objects.length == 0) {
+            return obj_id.NULL_ID;
+        }
+        Vector allies = new Vector();
+        allies.setSize(0);
+        for (obj_id object : objects) {
+            if (isIdValid(object) && object != self && !ai_lib.isDead(object)) {
+                String spawnId = getStringObjVar(object, "spawn_id");
+                if ("axkva_min".equals(spawnId) || "nandina".equals(spawnId) || "kimaru".equals(spawnId) || "suin_chalo".equals(spawnId)) {
+                    allies.add(object);
+                }
+            }
+        }
+        if (allies.size() == 0) {
+            return obj_id.NULL_ID;
+        }
+        return (obj_id) allies.get(rand(0, allies.size() - 1));
     }
 
     public int heat_aspect(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
@@ -10581,6 +11131,66 @@ public class combat_actions extends script.systems.combat.combat_base {
         if (!combatStandardAction("axkva_contagion", self, target, params, "", "")) {
             return SCRIPT_OVERRIDE;
         }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int axkva_hard_contagion_bomb(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (!combatStandardAction("axkva_hard_contagion_bomb", self, target, params, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int axkva_hard_contagion(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (!combatStandardAction("axkva_hard_contagion", self, target, params, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int axkvaHardContagionAddBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException {
+        if (buff.hasBuff(self, script.theme_park.heroic.axkva_min_hard_mode.encounter.AXKVA_CONTAGION_RECOURSE)) {
+            return SCRIPT_OVERRIDE;
+        }
+        obj_id top = trial.getTop(caster);
+        if (!script.theme_park.heroic.axkva_min_hard_mode.encounter.isCurrentAxkva(caster) || trial.getTop(self) != top) {
+            return SCRIPT_CONTINUE;
+        }
+        utils.setScriptVar(self, AXKVA_HARD_CONTAGION_CASTER, caster);
+        utils.setScriptVar(self, AXKVA_HARD_CONTAGION_TOP, top);
+        utils.setScriptVar(self, AXKVA_HARD_CONTAGION_SESSION, trial.getSession(top, script.theme_park.heroic.axkva_min_hard_mode.encounter.VAR_PREFIX));
+        playClientEffectObj(self, "appearance/pt_contagion_debuff.prt", self, "", null, "contagion");
+        return SCRIPT_CONTINUE;
+    }
+
+    public int axkvaHardContagionRemoveBuffHandler(obj_id self, String effectName, String subType, float duration, float value, String buffName, obj_id caster) throws InterruptedException {
+        stopClientEffectObjByLabel(self, self, "contagion");
+        if (!utils.hasScriptVar(self, AXKVA_HARD_CONTAGION_CASTER)
+                || !utils.hasScriptVar(self, AXKVA_HARD_CONTAGION_TOP)
+                || !utils.hasScriptVar(self, AXKVA_HARD_CONTAGION_SESSION)) {
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id recordedCaster = utils.getObjIdScriptVar(self, AXKVA_HARD_CONTAGION_CASTER);
+        obj_id recordedTop = utils.getObjIdScriptVar(self, AXKVA_HARD_CONTAGION_TOP);
+        int recordedSession = utils.getIntScriptVar(self, AXKVA_HARD_CONTAGION_SESSION);
+        utils.removeScriptVar(self, AXKVA_HARD_CONTAGION_CASTER);
+        utils.removeScriptVar(self, AXKVA_HARD_CONTAGION_TOP);
+        utils.removeScriptVar(self, AXKVA_HARD_CONTAGION_SESSION);
+
+        if (caster != recordedCaster
+                || trial.getTop(self) != recordedTop
+                || trial.getTop(recordedCaster) != recordedTop
+                || recordedSession != trial.getSession(recordedTop, script.theme_park.heroic.axkva_min_hard_mode.encounter.VAR_PREFIX)
+                || !script.theme_park.heroic.axkva_min_hard_mode.encounter.isCurrentAxkva(recordedCaster)) {
+            return SCRIPT_CONTINUE;
+        }
+
+        buff.applyBuff(self, self, script.theme_park.heroic.axkva_min_hard_mode.encounter.AXKVA_CONTAGION_RECOURSE);
+        dictionary dict = new dictionary();
+        dict.put("player", self);
+        dict.put("hardAttempt", recordedSession);
+        messageTo(recordedCaster, "hardContagionBomb", dict, 1.0f, false);
         return SCRIPT_CONTINUE;
     }
 
