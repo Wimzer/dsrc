@@ -1166,6 +1166,15 @@ public class combat_actions extends script.systems.combat.combat_base {
     }
 
     public int co_position_secured(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (hasScript(self, "theme_park.heroic.ig88_hard_mode.droideka")) {
+            if (buff.hasBuff(self, "co_position_secured")) {
+                buff.removeBuff(self, "co_position_secured");
+            }
+            if (!buff.hasBuff(self, "ig88_hard_dug_in")) {
+                buff.applyBuff(self, "ig88_hard_dug_in", -1.0f);
+            }
+            return SCRIPT_OVERRIDE;
+        }
         if (buff.toggleStance(self, "co_position_secured")) {
             return SCRIPT_OVERRIDE;
         }
@@ -10474,6 +10483,147 @@ public class combat_actions extends script.systems.combat.combat_base {
         location loc = getLocation(self);
         String strLoc = "" + loc.x + " " + loc.y + " " + loc.z + " " + loc.cell + " " + loc.x + " " + loc.y + " " + loc.z;
         if (!combatStandardAction("ig88_grenade", self, target, strLoc, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int ig88_hard_bomb_explode(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        combat_data actionData = combat_engine.getCombatData("ig88_hard_bomb_explode");
+        if (actionData != null) {
+            actionData.addedDamage = 0;
+            actionData.overloadWeaponMinDamage = 3000;
+            actionData.overloadWeaponMaxDamage = 3000;
+            actionData.overloadWeaponDamageType = DAMAGE_ENERGY;
+            actionData.overloadWeaponElementalType = 0;
+            actionData.overloadWeaponElementalValue = 0;
+        }
+        if (!combatStandardAction("ig88_hard_bomb_explode", self, target, getCurrentWeapon(self), params, actionData, false, true, 0) && !utils.hasScriptVar(self, "exploded")) {
+            return SCRIPT_OVERRIDE;
+        }
+        utils.setScriptVar(self, "exploded", 1);
+        obj_id dungeon = getTopMostContainer(self);
+        if (isIdValid(dungeon)) {
+            dictionary messageParams = trial.getSessionDict(dungeon);
+            messageParams.put("npc", self);
+            messageTo(dungeon, "killNPC", messageParams, 0, false);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int ig88_hard_droideka_electrify(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (!combatStandardAction("ig88_hard_droideka_electrify", self, target, params, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
+        setHate(self, target, 1);
+        playClientEffectObj(self, "appearance/pt_ig88_electrify.prt", self, "");
+        playClientEffectObj(target, "appearance/pt_ig88_electrify_target.prt", target, "");
+        removeObjVar(self, "ai.combat.oneShotAction");
+        removeObjVar(self, "oneShotActionComplete");
+        return SCRIPT_CONTINUE;
+    }
+
+    public int ig88_hard_dug_in(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (!combatStandardAction("ig88_hard_dug_in", self, target, params, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int ig88_hard_flame_thrower(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (!isIdValid(target)) {
+            return SCRIPT_OVERRIDE;
+        }
+        location where = getLocation(target);
+        obj_id[] defenders = pvpGetTargetsInCone(self, self, where, 64, 10);
+        Vector filteredDefenders = new Vector();
+        filteredDefenders.setSize(0);
+        if (defenders != null && defenders.length > 0) {
+            for (obj_id defender : defenders) {
+                if (isIdValid(defender) && !isDead(defender) && isPlayer(defender)) {
+                    filteredDefenders = utils.addElement(filteredDefenders, defender);
+                }
+            }
+        }
+        if (filteredDefenders.size() > 0) {
+            target = ((obj_id) filteredDefenders.get(rand(0, filteredDefenders.size() - 1)));
+        }
+        combat_data actionData = combat_engine.getCombatData("ig88_hard_flame_thrower");
+        if (isIg88FlameMouse(target) && actionData != null) {
+            actionData.hitSpam = combat.NO_HIT_SPAM;
+        }
+        if (!combatStandardAction("ig88_hard_flame_thrower", self, target, getCurrentWeapon(self), params, actionData, false)) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int ig88_hard_flame_thrower_vertical(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        if (!isIdValid(target)) {
+            return SCRIPT_OVERRIDE;
+        }
+        location where = getLocation(target);
+        obj_id[] defenders = pvpGetTargetsInCone(self, self, where, 64, 10);
+        Vector filteredDefenders = new Vector();
+        filteredDefenders.setSize(0);
+        if (defenders != null && defenders.length > 0) {
+            for (obj_id defender : defenders) {
+                if (isIdValid(defender) && !isDead(defender) && isPlayer(defender)) {
+                    filteredDefenders = utils.addElement(filteredDefenders, defender);
+                }
+            }
+        }
+        if (filteredDefenders.size() > 0) {
+            target = ((obj_id) filteredDefenders.get(rand(0, filteredDefenders.size() - 1)));
+        }
+        combat_data actionData = combat_engine.getCombatData("ig88_hard_flame_thrower_vertical");
+        if (isIg88FlameMouse(target) && actionData != null) {
+            actionData.hitSpam = combat.NO_HIT_SPAM;
+        }
+        if (!combatStandardAction("ig88_hard_flame_thrower_vertical", self, target, getCurrentWeapon(self), params, actionData, false)) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    private boolean isIg88FlameMouse(obj_id target) throws InterruptedException {
+        if (!isIdValid(target) || !"heroic_ig88_mouse_droid".equals(getCreatureName(target)) || !hasObjVar(target, "spawn_id")) {
+            return false;
+        }
+        String spawnId = getStringObjVar(target, "spawn_id");
+        return "mouse_droid1".equals(spawnId) || "mouse_droid2".equals(spawnId);
+    }
+
+    public int ig88_hard_rocket_launch(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        target = getRocketTarget(self, target);
+        boolean actionSucceeded = combatStandardAction("ig88_hard_rocket_launch", self, target, params, "", "");
+        removeObjVar(self, "ai.combat.oneShotAction");
+        removeObjVar(self, "oneShotActionComplete");
+        if (!actionSucceeded) {
+            return SCRIPT_OVERRIDE;
+        }
+        playClientEffectObj(self, "appearance/pt_ig88_rocket_launch.prt", self, "");
+        playClientEffectObj(self, "sound/wep_heavy_rocket_launcher.snd", self, "");
+        playClientEffectLoc(target, "appearance/pt_ig88_rocket_target.prt", getLocation(target), 0.0f);
+        dictionary rocketParams = new dictionary();
+        rocketParams.put("loc", getLocation(target));
+        messageTo(self, "ig88_rocket_hit", rocketParams, 2.0f, false);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int ig88_hard_shockwave(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        location loc = getLocation(self);
+        String strLoc = "" + loc.x + " " + loc.y + " " + loc.z + " " + loc.cell + " " + loc.x + " " + loc.y + " " + loc.z;
+        if (!combatStandardAction("ig88_hard_shockwave", self, target, strLoc, "", "")) {
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int ig88_hard_grenade(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException {
+        location loc = getLocation(self);
+        String strLoc = "" + loc.x + " " + loc.y + " " + loc.z + " " + loc.cell + " " + loc.x + " " + loc.y + " " + loc.z;
+        if (!combatStandardAction("ig88_hard_grenade", self, target, strLoc, "", "")) {
             return SCRIPT_OVERRIDE;
         }
         return SCRIPT_CONTINUE;

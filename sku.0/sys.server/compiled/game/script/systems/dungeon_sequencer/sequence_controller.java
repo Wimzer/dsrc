@@ -174,19 +174,28 @@ public class sequence_controller extends script.base_script
     }
     public int beginSpawn(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!verifyOptionalSession(self, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
         handleCleanup(self);
         cacheInstanceTable();
-        messageTo(self, "delaySpawnActors", params != null ? params : null, 5.0f, false);
+        dictionary delayParams = trial.getSessionDict(self);
+        if (params != null && params.containsKey("defaultTrigger"))
+        {
+            delayParams.put("defaultTrigger", params.getString("defaultTrigger"));
+        }
+        messageTo(self, "delaySpawnActors", delayParams, 5.0f, false);
         return SCRIPT_CONTINUE;
     }
     public int delaySpawnActors(obj_id self, dictionary params) throws InterruptedException
     {
-        String defaultTrigger = "default";
-        if (params != null && !params.isEmpty())
+        if (!verifyOptionalSession(self, params))
         {
-            defaultTrigger = params.getString("defaultTrigger");
-            defaultTrigger = defaultTrigger.length() > 0 && !defaultTrigger.equals("") ? defaultTrigger : "default";
+            return SCRIPT_CONTINUE;
         }
+        String defaultTrigger = params != null ? params.getString("defaultTrigger") : null;
+        defaultTrigger = defaultTrigger != null && defaultTrigger.length() > 0 ? defaultTrigger : "default";
         spawnActors(self, defaultTrigger);
         return SCRIPT_CONTINUE;
     }
@@ -289,9 +298,18 @@ public class sequence_controller extends script.base_script
     }
     public int restartSpawn(obj_id self, dictionary params) throws InterruptedException
     {
+        if (!verifyOptionalSession(self, params))
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "cleanupSpawn", null, 0.0f, false);
         messageTo(self, "beginSpawn", null, 5.0f, false);
         return SCRIPT_CONTINUE;
+    }
+
+    private boolean verifyOptionalSession(obj_id self, dictionary params) throws InterruptedException
+    {
+        return params == null || params.isEmpty() || !params.containsKey(trial.MESSAGE_SESSION) || trial.verifySession(self, params);
     }
     public obj_id[] getSpawnedChildren(obj_id self) throws InterruptedException
     {
