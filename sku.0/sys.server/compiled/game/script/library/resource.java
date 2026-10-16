@@ -24,6 +24,52 @@ public class resource extends script.base_script
     public static final String VAR_SURVEY_RANGE_MAX = VAR_SURVEY_BASE + ".range.max";
     public static final String VAR_SURVEY_RANGE_VALUE = VAR_SURVEY_BASE + ".range.value";
     public static final String VAR_SAMPLE_STAMP = VAR_SURVEY_BASE + ".sample.stamp";
+    public static final String VAR_PLANETARY_MINING_SURVEY_LICENSE = "planetary_mining.survey_license_occupied";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB = "planetary_mining.active_job";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE = "planetary_mining.active_job_sequence";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_RESOURCE = VAR_PLANETARY_MINING_ACTIVE_JOB + ".resource";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_AMOUNT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".amount";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_AT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".started_at";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_DURATION = VAR_PLANETARY_MINING_ACTIVE_JOB + ".duration";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_STARTED_GAME_TIME = VAR_PLANETARY_MINING_ACTIVE_JOB + ".started_game_time";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SURVEYING = VAR_PLANETARY_MINING_ACTIVE_JOB + ".surveying";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_DENSITY = VAR_PLANETARY_MINING_ACTIVE_JOB + ".density";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INTERVAL = VAR_PLANETARY_MINING_ACTIVE_JOB + ".sampling_interval";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_SAMPLING_INCREASE = VAR_PLANETARY_MINING_ACTIVE_JOB + ".sampling_increase";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_FALLEENS_FIST = VAR_PLANETARY_MINING_ACTIVE_JOB + ".falleens_fist";
+    public static final String VAR_PLANETARY_MINING_ACTIVE_JOB_COMPLETION_AMOUNT = VAR_PLANETARY_MINING_ACTIVE_JOB + ".completion_amount";
+    public static final String VAR_PLANETARY_MINING_DELIVERY_JOB = "planetary_mining.delivery_job";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH = "planetary_mining.pending_launch";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_ITEM = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".item";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_SEQUENCE = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".sequence";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_PHASE = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".phase";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_ITEM_COUNT = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".item_count";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_RESOURCE = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".resource";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_DURATION = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".duration";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_SURVEYING = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".surveying";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_DENSITY = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".density";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_SAMPLING_INTERVAL = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".sampling_interval";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_SAMPLING_INCREASE = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".sampling_increase";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_FALLEENS_FIST = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".falleens_fist";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_RESOURCE_CLASS = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".resource_class";
+    public static final String VAR_PLANETARY_MINING_PENDING_LAUNCH_LOCATION = VAR_PLANETARY_MINING_PENDING_LAUNCH + ".location";
+    public static final int PLANETARY_MINING_PENDING_PHASE_RESERVE = 1;
+    public static final int PLANETARY_MINING_PENDING_PHASE_COMMIT = 2;
+    public static final int PLANETARY_MINING_PENDING_PHASE_ACTIVATE = 3;
+    public static final obj_id PLANETARY_MINING_CONTROLLER = obj_id.getObjId(60525);
+    public static final float PLANETARY_MINING_MAX_DEPLOYMENT_MOVEMENT = 8.0f;
+    public static final int PLANETARY_MINING_BASE_SAMPLING_DELAY = 25;
+    public static final int PLANETARY_MINING_MIN_SAMPLING_DELAY = 10;
+    public static final int PLANETARY_MINING_SAMPLE_LOOP_OVERHEAD = 3;
+    public static final String BUFF_PLANETARY_MINING_SURVEY_LICENSE = "pmd_survey_license_occupied";
+    public static final String PLANETARY_MINING_MOVED_TOO_FAR = "You moved too far from your original launch coordinates.";
+    public static final string_id SID_PLANETARY_MINING_SURVEY_LICENSE_OCCUPIED = new string_id("planetary_mining_droid", "survey_license_occupied");
+
+    public static boolean isPlanetaryMiningSceneSupported(String scene)
+    {
+        return scene != null && (scene.equals("mustafar") || scene.equals("kashyyyk_main") || scene.equals("kashyyyk_dead_forest") || scene.equals("kashyyyk_hunting") || scene.equals("kashyyyk_rryatt_trail"));
+    }
+
     public static final String HANDLER_SET_RANGE = "handleSetRange";
     public static final String HANDLER_SET_RESOLUTION = "handleSetResolution";
     public static final String VAR_SETTINGS_BASE = VAR_SURVEY_BASE + ".settings";
@@ -153,6 +199,64 @@ public class resource extends script.base_script
     public static final String DATATABLE_RESOURCES = "datatables/resource/resource_tree.iff";
     public static final String DATATABLE_COL_ENUM = "Enum";
     public static final String DATATABLE_COL_RESOURCE_CRATE_TYPE = "Resource Container Type";
+
+    public static int getPlanetaryMiningAmount(float density, int surveying, int duration, int samplingInterval, int samplingIncrease, boolean falleensFist) throws InterruptedException
+    {
+        if (density <= 0 || duration < 1 || samplingInterval < 1)
+        {
+            return 0;
+        }
+        float threshold = SAMPLE_DENSITY_THRESHOLD * ((100.0f - surveying) / 100.0f);
+        float potentialAmount = BASE_SAMPLE_AMOUNT * (density - threshold);
+        if (potentialAmount < 1)
+        {
+            return 0;
+        }
+        float chance = 50.0f + 20.0f * ((surveying - 15.0f) / 85.0f);
+        if (chance > 70.0f)
+        {
+            chance = 70.0f;
+        }
+        float expectedAmount = 0.0f;
+        for (int roll = 1; roll <= 100; ++roll)
+        {
+            if (roll <= chance)
+            {
+                float resultModifier = ((2 * chance) - roll) / (2 * chance);
+                int successfulAmount = (int)(potentialAmount * resultModifier);
+                successfulAmount = Math.max(1, successfulAmount);
+                if (samplingIncrease > 0)
+                {
+                    successfulAmount += (int)(successfulAmount * samplingIncrease / 100.0f);
+                }
+                if (falleensFist)
+                {
+                    successfulAmount = (int)(successfulAmount * 1.5f);
+                }
+                expectedAmount += successfulAmount / 100.0f;
+            }
+        }
+        int sampleCount = duration / samplingInterval;
+        return (int)(expectedAmount * sampleCount);
+    }
+    public static int getPlanetaryMiningDuration(obj_id item) throws InterruptedException
+    {
+        float duration = getFloatObjVar(item, craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".duration");
+        if (duration <= 0)
+        {
+            duration = 20.0f;
+        }
+        return Math.round(Math.max(20.0f, Math.min(24.0f, duration)) * 60 * 60);
+    }
+    public static int getPlanetaryMiningSamplingInterval(obj_id player) throws InterruptedException
+    {
+        int samplingDelay = PLANETARY_MINING_BASE_SAMPLING_DELAY - getSkillStatisticModifier(player, "expertise_resource_sampling_time_decrease");
+        return Math.max(PLANETARY_MINING_MIN_SAMPLING_DELAY, samplingDelay) + PLANETARY_MINING_SAMPLE_LOOP_OVERHEAD;
+    }
+    public static boolean sendPlanetaryMiningControllerMessage(String handler, dictionary params) throws InterruptedException
+    {
+        return messageTo(PLANETARY_MINING_CONTROLLER, handler, params, 0.0f, true);
+    }
     public static final String DEFAULT_CONTAINER = "object/resource_container/simple.iff";
     public static final int CONTAINER_VOLUME_MAX = 100000;
     public static final String MSG_SELECT_RANGE = "@" + STF_SURVEY + ":select_range";
@@ -381,6 +485,11 @@ public class resource extends script.base_script
     {
         if ((user == null) || (tool == null) || (type.equals("")))
         {
+            return SAMPLE_STOP_LOOP;
+        }
+        if (hasObjVar(user, VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(user, BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+        {
+            sendSystemMessage(user, SID_PLANETARY_MINING_SURVEY_LICENSE_OCCUPIED);
             return SAMPLE_STOP_LOOP;
         }
         obj_id typeId = getResourceTypeByName(type);
