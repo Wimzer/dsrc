@@ -218,7 +218,6 @@ public class newbie_handoff extends script.base_script
     }
     public int startHandoff(obj_id self, dictionary params) throws InterruptedException
     {
-        playMusic(self, "sound/tut_00_holocron.snd");
         openHolocronToNewbiePage(self, "WelcomeToSWG.WhereDoIBegin");
         return SCRIPT_CONTINUE;
     }
@@ -335,7 +334,12 @@ public class newbie_handoff extends script.base_script
     {
         String profession = toUpper(getSimpleProfession(getStartingProfession(self)), 0);
         String page = "WelcomeToSWG.WhereDoIBegin.Professions.Playing" + profession;
-        openHolocronToNewbiePage(self, page);
+        // This handler is the explicit profession-page request (including the
+        // GM speech hook), not an automatic tour-arrival callback.
+        if (!hasObjVar(self, "newbie_handoff.disabled"))
+        {
+            openHolocronToPage(self, page);
+        }
         return SCRIPT_CONTINUE;
     }
     public int missionArtisanSurvey(obj_id self, dictionary params) throws InterruptedException
@@ -993,10 +997,10 @@ public class newbie_handoff extends script.base_script
     }
     private void openHolocronToNewbiePage(obj_id player, String page) throws InterruptedException
     {
-        if (!hasObjVar(player, "newbie_handoff.disabled"))
-        {
-            openHolocronToPage(player, page);
-        }
+        // Retired city-tour callbacks must not force-open the restored window
+        // in the main world. The former Tansarii broker has been retired;
+        // a replacement automatic introduction binding is not installed here.
+        // Explicit helper-droid radial help uses openHolocronToPage separately.
     }
     private location findClosestStructure(obj_id player, String[] priSearchList, String[] secSearchList) throws InterruptedException
     {

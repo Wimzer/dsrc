@@ -16,6 +16,36 @@ public class trigger_journal extends script.base_script
     }
     public static final float MAX_DISTANCE = 5.0f;
     public static final string_id TOO_FAR = new string_id("npe", "gamma_travel_too_far");
+    public int receiveCreditForKill(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id station = getTopMostContainer(self);
+        if (params != null && isPlayer(self) && isIdValid(station) &&
+            "object/building/general/npe_space_station.iff".equals(getTemplateName(station)) &&
+            !hasObjVar(self, "npe.audioHints.sent.loot") && isIdValid(params.getObjId("target")))
+        {
+            dictionary check = new dictionary();
+            check.put("player", self);
+            check.put("station", station);
+            check.put("target", params.getObjId("target"));
+            // Normal corpse setup has a one-second, integer-clock loot lock.
+            // One later check only; do not alter the corpse or poll for readiness.
+            messageTo(station, "notifyLoot", check, 3, false);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int OnSomeTaskActivated(obj_id self, int questCrc, int taskId) throws InterruptedException
+    {
+        obj_id cell = getContainedBy(self);
+        if (isIdValid(cell) &&
+            ((questCrc == groundquests.getQuestIdFromString("npe_prof_entertainer1") && taskId == 1 && "dockingbay1".equals(getCellName(cell))) ||
+             (questCrc == groundquests.getQuestIdFromString("npe_prof_entertainer2") && taskId == 0 && "medicalbay".equals(getCellName(cell)))))
+        {
+            dictionary params = new dictionary();
+            params.put("player", self);
+            messageTo(cell, "notifyPerformance", params, 0, false);
+        }
+        return SCRIPT_CONTINUE;
+    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         if (hasObjVar(self, npe.QUEST_REWORK_VAR))

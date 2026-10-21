@@ -33,6 +33,10 @@ public class elevator_up extends script.base_script
                 sendSystemMessage(player, new string_id(STF_FILE, "highest_floor"));
                 return SCRIPT_OVERRIDE;
             }
+            dictionary params = new dictionary();
+            params.put("player", player);
+            params.put("station", getTopMostContainer(self));
+            messageTo(getContainedBy(player), "notifyTargeting", params, 0, false);
             return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;

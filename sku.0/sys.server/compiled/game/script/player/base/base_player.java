@@ -1821,6 +1821,10 @@ public class base_player extends script.base_script
     }
     public int OnNewbieTutorialResponse(obj_id self, String action) throws InterruptedException
     {
+        if (holocron_introduction.handleActivation(self, action))
+        {
+            return SCRIPT_CONTINUE;
+        }
         if (action.equals("clientReady"))
         {
             int playerState = getState(self, STATE_DISGUISE);
