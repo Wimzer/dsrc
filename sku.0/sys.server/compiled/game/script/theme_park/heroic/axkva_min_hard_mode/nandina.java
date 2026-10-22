@@ -42,6 +42,8 @@ public class nandina extends script.theme_park.heroic.axkva_min.nandina
     public int OnEnteredCombat(obj_id self) throws InterruptedException
     {
         encounter.startWipeCheck(self);
+        obj_id top = trial.getTop(self);
+        messageTo(top, "startDialogue", trial.getSessionDict(top, encounter.VAR_PREFIX), 0.0f, false);
         return super.OnEnteredCombat(self);
     }
     public int OnCreatureDamaged(obj_id self, obj_id attacker, obj_id weapon, int[] damage) throws InterruptedException

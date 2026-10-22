@@ -26,3 +26,10 @@ delayAction:hm_spawn_suin_chalo:0.5		hm_release_suin_chalo
 heroic_axkva_suin_chalo_hard_mode	suin_chalo	hm_spawn_suin_chalo	r2	-78.9	17.9	28.1	102	theme_park.heroic.axkva_min_hard_mode.suin_chalo			1			
 heroic_axkva_axkva_min_hard_mode	axkva_min	hm_spawn_axkva_min	r2	-81.7	17.8	19.5	101	theme_park.heroic.axkva_min_hard_mode.axkva		OnDeath:signalMaster:axkvaDied:none	1			
 deleteSpawn:axkva_min_crystal:pt_axkvamin_lightning.prt		hm_release_axkva_min												
+clientfx:pt_axkvamin_lightning.prt:forced-200:0.5		hm_release_axkva_min	r2	-80.2000	17.8	19.5000								
+clientfx:pt_axkvamin_lightning.prt:forced-200:0.5		hm_release_axkva_min	r2	-81.2365	17.8	20.9266								
+clientfx:pt_axkvamin_lightning.prt:forced-200:0.5		hm_release_axkva_min	r2	-82.9135	17.8	20.3817								
+clientfx:pt_axkvamin_lightning.prt:forced-200:0.5		hm_release_axkva_min	r2	-82.9135	17.8	18.6183								
+clientfx:pt_axkvamin_lightning.prt:forced-200:0.5		hm_release_axkva_min	r2	-81.2365	17.8	18.0734								
+heroic_axkva_axkva_shade	hm_essence	hm_spawn_essence	r2	-79.04	17.81	23.88	102.57	theme_park.heroic.axkva_min_hard_mode.essence			1			
+deleteSpawn:hm_essence:none		hm_remove_essence												

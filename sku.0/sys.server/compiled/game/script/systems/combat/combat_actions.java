@@ -10616,6 +10616,7 @@ public class combat_actions extends script.systems.combat.combat_base {
             setMaster(storm, self);
             utils.setScriptVar(storm, trial.KIMARU_HATE_LIST, hateList);
         }
+        script.theme_park.heroic.axkva_min_hard_mode.illusions.spawnStorms(self, locList, hateList);
         return SCRIPT_CONTINUE;
     }
 
@@ -10629,6 +10630,7 @@ public class combat_actions extends script.systems.combat.combat_base {
         if (!combatStandardAction("kimaru_flame_patch", self, target, targetLoc, "", "")) {
             return SCRIPT_OVERRIDE;
         }
+        script.theme_park.heroic.axkva_min_hard_mode.illusions.spawnPool(self, loc, hateList);
         return SCRIPT_CONTINUE;
     }
 
@@ -11081,6 +11083,9 @@ public class combat_actions extends script.systems.combat.combat_base {
         for (obj_id object : objects) {
             if (isIdValid(object) && object != self && !ai_lib.isDead(object)) {
                 String spawnId = getStringObjVar(object, "spawn_id");
+                if ("axkva_min".equals(spawnId) && !hasObjVar(top, "axkva_min_hard_mode.axkva_released")) {
+                    continue;
+                }
                 if ("axkva_min".equals(spawnId) || "nandina".equals(spawnId) || "kimaru".equals(spawnId) || "suin_chalo".equals(spawnId)) {
                     allies.add(object);
                 }

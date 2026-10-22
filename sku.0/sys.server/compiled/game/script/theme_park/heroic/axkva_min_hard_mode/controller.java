@@ -11,6 +11,47 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
 {
     public static final String VAR_PREFIX = encounter.VAR_PREFIX;
 
+    public int startDialogue(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!isCurrentRun(self, params) || hasObjVar(self, VAR_PREFIX + ".dialogue_started"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(self, VAR_PREFIX + ".dialogue_started", 1);
+        illusions.cleanupBrokenPools(self);
+        setObjVar(self, dialogue.NEXT, (float)getGameTime() + 15.0f);
+        setObjVar(self, dialogue.OPENING_END, (float)getGameTime() + 15.0f);
+        fireSequencerTrigger(self, "hm_spawn_essence");
+        return SCRIPT_CONTINUE;
+    }
+
+    public int essenceReady(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id shade = params == null ? obj_id.NULL_ID : params.getObjId("essence");
+        if (!isCurrentRun(self, params) || !isIdValid(shade) || !exists(shade) || trial.getTop(shade) != self
+                || hasObjVar(self, dialogue.ESSENCE) || !hasObjVar(self, VAR_PREFIX + ".dialogue_started"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(self, dialogue.ESSENCE, shade);
+        // Reserve the complete opening so later events cannot interrupt its three beats.
+        setObjVar(self, dialogue.NEXT, Math.max(getFloatObjVar(self, dialogue.NEXT), (float)getGameTime() + 15.0f));
+        setObjVar(self, dialogue.OPENING_END, (float)getGameTime() + 15.0f);
+        dialogue.schedule(self, "opening_power", obj_id.NULL_ID, obj_id.NULL_ID, 3.0f);
+        dialogue.schedule(self, "opening_emote", obj_id.NULL_ID, obj_id.NULL_ID, 8.0f);
+        dialogue.schedule(self, "opening_accusation", obj_id.NULL_ID, obj_id.NULL_ID, 12.0f);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int deliverDialogue(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (isCurrentRun(self, params))
+        {
+            dialogue.deliver(self, params);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
     public int startNewInstance(obj_id self, dictionary params) throws InterruptedException
     {
         if (params != null && !params.isEmpty())
@@ -50,6 +91,12 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
         if (encounter.isRunning(self) && params != null && params.containsKey(trial.MESSAGE_SESSION) && trial.verifySession(self, params))
         {
             initializeSisterPhase(self);
+            if (!hasObjVar(self, VAR_PREFIX + ".opening_death_spoken"))
+            {
+                setObjVar(self, VAR_PREFIX + ".opening_death_spoken", 1);
+                dialogue.enqueue(self, "death_nandina", obj_id.NULL_ID,
+                        encounter.getObjectBySpawnId(self, "nandina"), 3.0f);
+            }
         }
         return SCRIPT_CONTINUE;
     }
@@ -61,7 +108,8 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
             return SCRIPT_CONTINUE;
         }
         boolean noLivingPlayers = !hasLivingPlayer(self);
-        boolean fullyDisengaged = hasObjVar(self, VAR_PREFIX + ".engaged") && encounter.hasActivePrimaryEnemy(self) && !encounter.hasPrimaryEnemyInCombat(self);
+        boolean presentationOnly = entrance.isPending(self) && encounter.countActiveSisters(self, obj_id.NULL_ID) == 0;
+        boolean fullyDisengaged = !presentationOnly && hasObjVar(self, VAR_PREFIX + ".engaged") && encounter.hasActivePrimaryEnemy(self) && !encounter.hasPrimaryEnemyInCombat(self);
         if (noLivingPlayers || fullyDisengaged)
         {
             String reason = noLivingPlayers ? "group wipe" : "all active primary enemies left combat";
@@ -139,6 +187,7 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
         setObjVar(self, encounter.VAR_PENDING_SISTER_DEATHS, getIntObjVar(self, encounter.VAR_SISTER_REQUEST_DEATHS));
         clearSisterRequest(self);
         fireSequencerTrigger(self, "hm_release_" + spawnId);
+        dialogue.enqueue(self, "summon_" + spawnId, obj_id.NULL_ID, obj_id.NULL_ID, 0.0f);
 
         dictionary timeout = trial.getSessionDict(self, VAR_PREFIX);
         timeout.put("spawnId", spawnId);
@@ -149,6 +198,17 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
     public int spawnAxkvaMin(obj_id self, dictionary params) throws InterruptedException
     {
         if (!isCurrentRun(self, params) || hasObjVar(self, encounter.VAR_AXKVA_SPAWNED) || hasObjVar(self, encounter.VAR_PENDING_AXKVA_SPAWN))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        entrance.request(self);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int spawnAxkvaAfterReaction(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!isCurrentRun(self, params) || !hasObjVar(self, entrance.SCHEDULED)
+                || hasObjVar(self, encounter.VAR_AXKVA_SPAWNED) || hasObjVar(self, encounter.VAR_PENDING_AXKVA_SPAWN))
         {
             return SCRIPT_CONTINUE;
         }
@@ -222,6 +282,7 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
                 clearPendingSister(self);
                 setInvulnerable(actor, false);
                 addPlayersToHateList(self, actor);
+                dialogue.enqueue(self, "challenge_" + spawnId, actor, obj_id.NULL_ID, 2.0f);
             }
         }
         if (axkva)
@@ -247,10 +308,15 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
             return SCRIPT_CONTINUE;
         }
         setObjVar(self, encounter.VAR_DEAD + "." + spawnId, 1);
+        setObjVar(self, entrance.LAST_DEATH, "death_" + spawnId);
         int deaths = encounter.getSisterDeathsFromTop(self) + 1;
         setObjVar(self, encounter.VAR_SISTER_DEATHS, deaths);
         encounter.updateActiveSisterCount(self, actor);
         encounter.applyRageToActiveBosses(self, deaths, actor);
+        if (!"nandina".equals(spawnId))
+        {
+            dialogue.enqueue(self, "death_" + spawnId, obj_id.NULL_ID, actor, 3.0f);
+        }
         return SCRIPT_CONTINUE;
     }
 
@@ -275,7 +341,8 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
 
     public int finalizeAxkvaMinRelease(obj_id self, dictionary params) throws InterruptedException
     {
-        if (!isCurrentRun(self, params) || !hasObjVar(self, encounter.VAR_AXKVA_RELEASE_PENDING) || hasObjVar(self, encounter.VAR_AXKVA_RELEASED))
+        if (!isCurrentRun(self, params) || !hasObjVar(self, encounter.VAR_AXKVA_RELEASE_PENDING)
+                || hasObjVar(self, entrance.ARRIVED) || hasObjVar(self, encounter.VAR_AXKVA_RELEASED))
         {
             return SCRIPT_CONTINUE;
         }
@@ -285,7 +352,30 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
             resetEncounter(self, "Axkva disappeared before release");
             return SCRIPT_CONTINUE;
         }
+        setObjVar(self, entrance.ARRIVED, 1);
+        fireSequencerTrigger(self, "hm_remove_essence");
+        removeObjVar(self, dialogue.ESSENCE);
+        // Keep the spawn table's invulnerability during her introduction, as the
+        // original heroic does. No hate is added until the delivered line finishes.
+        dialogue.enqueue(self, "axkva_entry", axkva, obj_id.NULL_ID, 0.0f);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int activateAxkvaCombat(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (!isCurrentRun(self, params) || !hasObjVar(self, entrance.ARRIVED)
+                || !hasObjVar(self, entrance.SPOKEN) || hasObjVar(self, encounter.VAR_AXKVA_RELEASED))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id axkva = getObjIdObjVar(self, encounter.VAR_ACTORS + ".axkva_min");
+        if (!isIdValid(axkva) || !exists(axkva) || ai_lib.isDead(axkva))
+        {
+            resetEncounter(self, "Axkva disappeared during introduction");
+            return SCRIPT_CONTINUE;
+        }
         removeObjVar(self, encounter.VAR_AXKVA_RELEASE_PENDING);
+        removeObjVar(self, entrance.WAITING);
         setObjVar(self, encounter.VAR_AXKVA_RELEASED, 1);
         setInvulnerable(axkva, false);
         encounter.updateAxkvaSisterProtection(axkva);
@@ -333,6 +423,7 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
         {
             return;
         }
+        illusions.cleanupBrokenPools(self);
         clearEncounterState(self);
         setObjVar(self, encounter.VAR_RUNNING, 1);
         CustomerServiceLog("instance-axkva_min_hard_mode", "Resetting encounter in " + self + ": " + reason + ".");
