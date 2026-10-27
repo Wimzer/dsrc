@@ -1,7 +1,6 @@
 package script.npe;
 
 import script.library.prose;
-import script.library.groundquests;
 import script.library.utils;
 import script.library.corpse;
 import script.library.pet_lib;
@@ -27,11 +26,6 @@ public class npe_notify_audio extends script.base_script
     public static final String TARGET_SOUND = "sound/tutorial_npe2_target.snd";
     public static final string_id TARGET_TEXT = new string_id("npe_atrium_tutorial", "targeting");
     public static final String SENT = "npe.audioHints.sent.";
-    public static final String[] TALK_QUESTS = {"npe_pointer_artisan", "npe_pointer_commando_template",
-        "npe_pointer_entertainer_template", "npe_pointer_force_template", "npe_pointer_med_template",
-        "npe_pointer_officer_template", "npe_pointer_spy_template", "npe_pointer_trader_template",
-        "npe_smuggler_try", "npe_pointer_secretary", "npe_pointer_inaldra", "npe_new_main_quest", "npe_new_main_quest"};
-    public static final int[] TALK_TASKS = {0,0,0,0,0,0,0,0,0,0,0,0,3};
     public int OnReceivedItem(obj_id self, obj_id srcContainer, obj_id transferer, obj_id item) throws InterruptedException
     {
         if (!isIdValid(item) || !isPlayer(item))
@@ -61,69 +55,7 @@ public class npe_notify_audio extends script.base_script
         {
             sendTargetingComm(item, getTopMostContainer(self));
         }
-        else if (getContainedBy(item) == self && ("hall1".equals(getCellName(self)) ||
-            "hall2".equals(getCellName(self)) || "hall3".equals(getCellName(self)) || "hall4".equals(getCellName(self))))
-        {
-            sendCorridorComm(item, getTopMostContainer(self));
-        }
-        else if (getContainedBy(item) == self && ("dockingbay1".equals(getCellName(self)) || "medicalbay".equals(getCellName(self))))
-        {
-            sendPerformanceComm(self, item);
-        }
         return SCRIPT_CONTINUE;
-    }
-    public int notifyPerformance(obj_id self, dictionary params) throws InterruptedException
-    {
-        if (params != null)
-        {
-            sendPerformanceComm(self, params.getObjId("player"));
-        }
-        return SCRIPT_CONTINUE;
-    }
-    private void sendPerformanceComm(obj_id cell, obj_id player) throws InterruptedException
-    {
-        if (!isIdValid(player) || getContainedBy(player) != cell || !utils.isProfession(player, utils.ENTERTAINER) ||
-            getPerformanceType(player) != 0)
-        {
-            return;
-        }
-        if (("dockingbay1".equals(getCellName(cell)) && groundquests.isTaskActive(player, "npe_prof_entertainer1", 1)) ||
-            ("medicalbay".equals(getCellName(cell)) && groundquests.isTaskActive(player, "npe_prof_entertainer2", 0)))
-        {
-            sendLesson(player, getTopMostContainer(cell), "perform", "perform");
-        }
-    }
-    private void sendCorridorComm(obj_id player, obj_id station) throws InterruptedException
-    {
-        // Cell-script callbacks need not run in attachment order. Never dispatch
-        // a new corridor cue before the stock map comm has been introduced.
-        if (!utils.hasScriptVar(player, "npe.map"))
-        {
-            return;
-        }
-        for (int i = 0; i < TALK_QUESTS.length; ++i)
-        {
-            if (!groundquests.isTaskActive(player, TALK_QUESTS[i], TALK_TASKS[i]))
-            {
-                continue;
-            }
-            if (!hasObjVar(player, SENT + "converse"))
-            {
-                sendLesson(player, station, "converse", "converse");
-                return;
-            }
-            // A separate later assignment, not another corridor on the very
-            // same first talk task, is the journal opportunity. No saved backlog.
-            for (int j = 0; j < TALK_QUESTS.length; ++j)
-            {
-                if (j != i && groundquests.hasCompletedTask(player, TALK_QUESTS[j], TALK_TASKS[j]))
-                {
-                    sendLesson(player, station, "journal", "journal");
-                    return;
-                }
-            }
-            return;
-        }
     }
     private boolean canSendLesson(obj_id player, obj_id station, String topic) throws InterruptedException
     {

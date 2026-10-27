@@ -37,12 +37,6 @@ public class station_experience_manager extends script.base_script
         attachScript(elevator, "npe.npe_notify_audio");
         attachScript(armory, "npe.npe_notify_audio");
         attachScript(ranged, "npe.npe_notify_audio");
-        attachScript(hall1, "npe.npe_notify_audio");
-        attachScript(hall2, "npe.npe_notify_audio");
-        attachScript(hall3, "npe.npe_notify_audio");
-        attachScript(hall4, "npe.npe_notify_audio");
-        attachScript(getCellId(self, "dockingbay1"), "npe.npe_notify_audio");
-        attachScript(getCellId(self, "medicalbay"), "npe.npe_notify_audio");
         attachScript(self, "npe.npe_notify_audio");
         attachScript(hangar01, "npe.npe_notify_objects");
         attachScript(hall1, "npe.npe_notify_map");
@@ -76,12 +70,6 @@ public class station_experience_manager extends script.base_script
         attachScript(elevator, "npe.npe_notify_audio");
         attachScript(armory, "npe.npe_notify_audio");
         attachScript(ranged, "npe.npe_notify_audio");
-        attachScript(hall1, "npe.npe_notify_audio");
-        attachScript(hall2, "npe.npe_notify_audio");
-        attachScript(hall3, "npe.npe_notify_audio");
-        attachScript(hall4, "npe.npe_notify_audio");
-        attachScript(getCellId(self, "dockingbay1"), "npe.npe_notify_audio");
-        attachScript(getCellId(self, "medicalbay"), "npe.npe_notify_audio");
         attachScript(self, "npe.npe_notify_audio");
         attachScript(hangar01, "npe.npe_notify_objects");
         attachScript(hall1, "npe.npe_notify_map");

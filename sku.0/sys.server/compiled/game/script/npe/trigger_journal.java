@@ -33,19 +33,6 @@ public class trigger_journal extends script.base_script
         }
         return SCRIPT_CONTINUE;
     }
-    public int OnSomeTaskActivated(obj_id self, int questCrc, int taskId) throws InterruptedException
-    {
-        obj_id cell = getContainedBy(self);
-        if (isIdValid(cell) &&
-            ((questCrc == groundquests.getQuestIdFromString("npe_prof_entertainer1") && taskId == 1 && "dockingbay1".equals(getCellName(cell))) ||
-             (questCrc == groundquests.getQuestIdFromString("npe_prof_entertainer2") && taskId == 0 && "medicalbay".equals(getCellName(cell)))))
-        {
-            dictionary params = new dictionary();
-            params.put("player", self);
-            messageTo(cell, "notifyPerformance", params, 0, false);
-        }
-        return SCRIPT_CONTINUE;
-    }
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         if (hasObjVar(self, npe.QUEST_REWORK_VAR))
