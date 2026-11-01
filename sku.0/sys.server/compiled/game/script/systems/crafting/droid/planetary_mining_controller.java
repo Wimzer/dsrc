@@ -258,11 +258,12 @@ public class planetary_mining_controller extends script.base_script
     public int syncPlanetaryMiningDroidJob(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = getRequestPlayer(params);
+        int requestedSequence = params == null ? 0 : params.getInt("jobSequence");
         int stationId = getStationId(player);
         String path = getJobPath(stationId, player);
         if (stationId < 1 || !hasObjVar(self, path))
         {
-            sendNoJob(self, player, 0);
+            sendNoJob(self, player, requestedSequence);
             return SCRIPT_CONTINUE;
         }
         int state = getIntObjVar(self, path + ".state");

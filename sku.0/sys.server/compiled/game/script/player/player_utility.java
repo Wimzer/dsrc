@@ -1719,6 +1719,7 @@ public class player_utility extends script.base_script
     {
         dictionary request = new dictionary();
         request.put("player", self);
+        request.put("jobSequence", getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE));
         resource.sendPlanetaryMiningControllerMessage("syncPlanetaryMiningDroidJob", request);
     }
     public int handlePlanetaryMiningDroidSync(obj_id self, dictionary params) throws InterruptedException
@@ -1730,7 +1731,7 @@ public class player_utility extends script.base_script
             if (state == 0)
             {
                 int activeSequence = getIntObjVar(self, VAR_PLANETARY_MINING_ACTIVE_JOB_SEQUENCE);
-                if (sequence == 0 || sequence == activeSequence)
+                if (sequence == activeSequence)
                 {
                     clearPlanetaryMiningDroidMirror(self);
                 }
