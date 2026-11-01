@@ -1290,7 +1290,8 @@ public class terminal_character_builder extends script.base_script
         "Nigthsister Backpack",
         "Increase Factory Speed",
         "Torrent of the Force Drink",
-        "Bespin Port (x10)"
+        "Bespin Port (x10)",
+        "Super Holo-pet Emitter"
     };
     public static final String[] MEDICINE_OPTIONS =
     {
@@ -8262,6 +8263,10 @@ public class terminal_character_builder extends script.base_script
                 setCount(drink1, 4);
                 setBioLink(drink1, player);
                 sendSystemMessageTestingOnly(player, "Liquid Gold Issued.");
+                break;
+            case 19:
+                static_item.createNewItemFunction("item_super_holopet_emitter", pInv);
+                sendSystemMessageTestingOnly(player, "Super Holo-pet Emitter issued.");
                 break;
             default:
                 cleanScriptVars(player);

@@ -762,23 +762,34 @@ public class holopet_emitter extends script.base_script
             forceCloseSUIPage(pageId);
             return SCRIPT_CONTINUE;
         }
-        String type = getStringObjVar(data_cubes[idx], "holopet_type");
-        setObjVar(self, "holopet_loaded", type);
-        if (hasObjVar(data_cubes[idx], beast_lib.OBJVAR_BEAST_ENGINEER))
+        obj_id selectedCube = data_cubes[idx];
+        String type = getStringObjVar(selectedCube, "holopet_type");
+        String creatorName = null;
+        int holocubeColor = -1;
+        String cubeName = getName(selectedCube);
+        if (hasObjVar(selectedCube, beast_lib.OBJVAR_BEAST_ENGINEER))
         {
-            String creatorName = getStringObjVar(data_cubes[idx], beast_lib.OBJVAR_BEAST_ENGINEER);
-            if (creatorName != null && creatorName.length() > 0)
-            {
-                setObjVar(self, beast_lib.OBJVAR_BEAST_ENGINEER, creatorName);
-            }
+            creatorName = getStringObjVar(selectedCube, beast_lib.OBJVAR_BEAST_ENGINEER);
         }
-        if (hasObjVar(data_cubes[idx], beast_lib.HOLO_BEAST_RARE_COLOR_OBJVAR))
+        if (hasObjVar(selectedCube, beast_lib.HOLO_BEAST_RARE_COLOR_OBJVAR))
         {
-            int holocubeColor = getIntObjVar(data_cubes[idx], beast_lib.HOLO_BEAST_RARE_COLOR_OBJVAR);
-            if (holocubeColor > -1 && holocubeColor < beast_lib.HOLOGRAM_MAX_SETTING)
-            {
-                setObjVar(self, beast_lib.HOLO_BEAST_RARE_COLOR_OBJVAR, holocubeColor);
-            }
+            holocubeColor = getIntObjVar(selectedCube, beast_lib.HOLO_BEAST_RARE_COLOR_OBJVAR);
+        }
+        if (!destroyObject(selectedCube))
+        {
+            sendSystemMessage(player, new string_id("publish_gift/holopet", "data_cube_load_failed"));
+            sui.removePid(player, PID_NAME);
+            forceCloseSUIPage(pageId);
+            return SCRIPT_CONTINUE;
+        }
+        setObjVar(self, "holopet_loaded", type);
+        if (creatorName != null && creatorName.length() > 0)
+        {
+            setObjVar(self, beast_lib.OBJVAR_BEAST_ENGINEER, creatorName);
+        }
+        if (holocubeColor > -1 && holocubeColor < beast_lib.HOLOGRAM_MAX_SETTING)
+        {
+            setObjVar(self, beast_lib.HOLO_BEAST_RARE_COLOR_OBJVAR, holocubeColor);
         }
         prose_package pp = new prose_package();
         if (type.startsWith("a") || type.startsWith("e") || type.startsWith("i") || type.startsWith("o") || type.startsWith("u"))
@@ -791,14 +802,13 @@ public class holopet_emitter extends script.base_script
         }
         if (type.startsWith("bm_"))
         {
-            pp = prose.setTT(pp, getName(data_cubes[idx]));
+            pp = prose.setTT(pp, cubeName);
         }
         else 
         {
-            pp = prose.setTT(pp, "@" + getName(data_cubes[idx]));
+            pp = prose.setTT(pp, "@" + cubeName);
         }
         sendSystemMessageProse(player, pp);
-        destroyObject(data_cubes[idx]);
         turnOn(self, player, type);
         if (player != owner)
         {

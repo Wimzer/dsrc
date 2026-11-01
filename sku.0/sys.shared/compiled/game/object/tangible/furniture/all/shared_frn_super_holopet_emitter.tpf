@@ -1,0 +1,16 @@
+// ======================================================================
+// shared_frn_super_holopet_emitter.tpf
+// ======================================================================
+
+@base object/tangible/furniture/base/shared_furniture_base.iff
+
+@class tangible_object_template 6
+
+@class object_template 5
+
+objectName = "super_holopet" "item_name"
+detailedDescription = "super_holopet" "item_description"
+appearanceFilename = "appearance/eqp_holopet_emitter.apt"
+clientDataFile = "clientdata/client_shared_hologram_base.cdf"
+portalLayoutFilename = ""
+gameObjectType = GOT_terminal_misc

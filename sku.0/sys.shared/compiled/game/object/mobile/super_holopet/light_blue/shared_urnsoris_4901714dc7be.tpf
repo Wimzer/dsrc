@@ -1,0 +1,10 @@
+// Private Super Holopet alternate appearance; no native client change.
+@base object/mobile/beast_master/shared_bm_urnsoris.iff
+
+@class creature_object_template 10
+
+@class tangible_object_template 5
+
+@class object_template 5
+
+appearanceFilename = "appearance/super_holopet/light_blue/urnsoris.sat"

@@ -1,0 +1,36 @@
+// ======================================================================
+// shared_furniture_super_holopet_emitter.tpf
+// ======================================================================
+
+@base object/draft_schematic/base/shared_base_draft_schematic.iff
+
+@class draft_schematic_object_template 3
+
+attributes = [
+	[name = "crafting" "complexity", experiment = "" "", value = 36..36],
+	[name = "crafting" "xp", experiment = "" "", value = 500..500],
+	[name = "crafting" "hitPoints", experiment = "" "", value = 1000..1000],
+	[name = "crafting" "quality", experiment = "crafting" "exp_quality", value = 1..100]]
+
+slots = [
+	[name = "super_holopet" "emitter", hardpoint = ""],
+	[name = "super_holopet" "frame", hardpoint = ""],
+	[name = "super_holopet" "wiring", hardpoint = ""],
+	[name = "super_holopet" "optics", hardpoint = ""],
+	[name = "super_holopet" "insulation", hardpoint = ""]]
+
+craftedSharedTemplate = "object/tangible/furniture/all/shared_frn_super_holopet_emitter.iff"
+
+@class intangible_object_template 0
+
+@class object_template 8
+
+objectName = "super_holopet" "schematic_name"
+lookAtText = "super_holopet" "schematic_description"
+snapToTerrain = false
+containerType = CT_none
+tintPalette = ""
+slotDescriptorFilename = ""
+arrangementDescriptorFilename = "abstract/slot/arrangement/arrangement_datapad.iff"
+portalLayoutFilename = ""
+clientDataFile = ""

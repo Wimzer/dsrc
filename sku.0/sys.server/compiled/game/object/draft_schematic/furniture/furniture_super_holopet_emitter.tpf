@@ -1,0 +1,62 @@
+// ======================================================================
+// furniture_super_holopet_emitter.tpf
+// ======================================================================
+
+@base object/draft_schematic/furniture/furniture_base.iff
+
+@class draft_schematic_object_template 7
+
+itemsPerContainer = 0
+craftedObjectTemplate = "object/tangible/furniture/all/frn_super_holopet_emitter.iff"
+slots = [
+	[
+	optional = false,
+	name = "super_holopet" "emitter",
+	options = [
+		[ingredientType=IT_templateGeneric, ingredients = [[name="super_holopet" "publish_emitter", ingredient="object/tangible/furniture/all/frn_holopet_base.iff", count=1]], complexity = 0, skillCommand = "unskilled"],
+		[ingredientType=IT_templateGeneric, ingredients = [[name="super_holopet" "collection_emitter", ingredient="object/tangible/collection/reward/col_holo_emitter_reward.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional = false,
+	name = "super_holopet" "frame",
+	options = [
+		[ingredientType=IT_resourceClass, ingredients = [[name="super_holopet" "frame", ingredient="aluminum", count=250]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional = false,
+	name = "super_holopet" "wiring",
+	options = [
+		[ingredientType=IT_resourceClass, ingredients = [[name="super_holopet" "wiring", ingredient="copper", count=150]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional = false,
+	name = "super_holopet" "optics",
+	options = [
+		[ingredientType=IT_resourceClass, ingredients = [[name="super_holopet" "optics", ingredient="gemstone", count=100]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional = false,
+	name = "super_holopet" "insulation",
+	options = [
+		[ingredientType=IT_resourceClass, ingredients = [[name="super_holopet" "insulation", ingredient="fiberplast", count=100]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ]]
+skillCommands = ["unskilled"]
+manufactureScripts = ["systems.crafting.furniture.specific_item.furniture_item"]
+
+@class intangible_object_template 1
+
+@class object_template 8
+
+complexity = 36
+sharedTemplate = "object/draft_schematic/furniture/shared_furniture_super_holopet_emitter.iff"
+volume = 1
