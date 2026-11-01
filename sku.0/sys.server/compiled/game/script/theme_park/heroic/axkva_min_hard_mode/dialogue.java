@@ -39,7 +39,9 @@ public class dialogue extends script.base_script
         messageTo(top, "deliverDialogue", event, delay, false);
     }
 
-    public static void deliver(obj_id top, dictionary event) throws InterruptedException
+    // True means the line was delivered or retained by the existing timing queue.
+    // False means an otherwise eligible delivery had no live speaker.
+    public static boolean deliver(obj_id top, dictionary event) throws InterruptedException
     {
         String key = event.getString("key");
         // Message delivery may be late, or shade creation may finish after a release
@@ -57,7 +59,7 @@ public class dialogue extends script.base_script
         if (earliest > now)
         {
             messageTo(top, "deliverDialogue", event, earliest - now, false);
-            return;
+            return true;
         }
         obj_id speaker = event.getObjId("speaker");
         // Resolve Axkva at delivery: a queued line may cross her release boundary.
@@ -69,7 +71,7 @@ public class dialogue extends script.base_script
         }
         if (!isIdValid(speaker) || !exists(speaker) || ai_lib.isDead(speaker))
         {
-            return;
+            return false;
         }
         setObjVar(top, LAST, now);
         if ("opening_emote".equals(key))
@@ -86,7 +88,7 @@ public class dialogue extends script.base_script
                     }
                 }
             }
-            return;
+            return true;
         }
         obj_id corpse = event.getObjId("corpse");
         if (isIdValid(corpse) && exists(corpse) && trial.getTop(corpse) == top && ai_lib.isDead(corpse))
@@ -99,5 +101,6 @@ public class dialogue extends script.base_script
         }
         chat.chat(speaker, chat.CHAT_SAY, new string_id(TABLE, key));
         entrance.spoken(top, key);
+        return true;
     }
 }

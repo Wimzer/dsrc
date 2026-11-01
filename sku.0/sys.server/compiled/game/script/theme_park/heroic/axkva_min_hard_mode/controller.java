@@ -47,7 +47,11 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
     {
         if (isCurrentRun(self, params))
         {
-            dialogue.deliver(self, params);
+            boolean retained = dialogue.deliver(self, params);
+            if (!retained && requiresEssenceDeathReaction(self, params))
+            {
+                resetEncounter(self, "Essence missing during death reaction");
+            }
         }
         return SCRIPT_CONTINUE;
     }
@@ -428,6 +432,14 @@ public class controller extends script.theme_park.heroic.axkva_min.axkva_control
         setObjVar(self, encounter.VAR_RUNNING, 1);
         CustomerServiceLog("instance-axkva_min_hard_mode", "Resetting encounter in " + self + ": " + reason + ".");
         messageTo(self, "restartSpawn", trial.getSessionDict(self), 0.0f, false);
+    }
+
+    private boolean requiresEssenceDeathReaction(obj_id self, dictionary params) throws InterruptedException
+    {
+        String key = params == null ? null : params.getString("key");
+        obj_id speaker = params == null ? obj_id.NULL_ID : params.getObjId("speaker");
+        return key != null && key.startsWith("death_") && !isIdValid(speaker)
+                && !hasObjVar(self, entrance.ARRIVED) && !hasObjVar(self, encounter.VAR_AXKVA_RELEASED);
     }
 
     private void fireSequencerTrigger(obj_id self, String triggerName) throws InterruptedException
