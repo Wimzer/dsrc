@@ -56,13 +56,21 @@ public class survey_tool_script extends script.base_script
         {
             obj_id player = utils.getObjIdScriptVar(self, "surveying.player");
             utils.removeScriptVar(player, "surveying.outstandingHarvestMessage");
-            resource.cleanupTool(player, self);
+            resource.cleanupTool(player, self, "tool_destroy");
             sendSystemMessage(player, SID_SAMPLE_GONE);
         }
         return SCRIPT_CONTINUE;
     }
     public int OnAboutToBeTransferred(obj_id self, obj_id destContainer, obj_id transferer) throws InterruptedException
     {
+        if (utils.hasScriptVar(self, "surveying.player"))
+        {
+            obj_id player = utils.getObjIdScriptVar(self, "surveying.player");
+            if (resource.isCurrentPlanetaryMiningSamplingSession(player, self, resource.getCurrentPlanetaryMiningSamplingSession(player, self)))
+            {
+                return SCRIPT_OVERRIDE;
+            }
+        }
         if (utils.hasScriptVar(self, "surveying.takingSamples"))
         {
             return SCRIPT_OVERRIDE;
@@ -249,7 +257,7 @@ public class survey_tool_script extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        boolean loopRunning = utils.hasScriptVar(player, "surveying.takingSamples") || utils.hasScriptVar(self, "surveying.takingSamples");
+        boolean loopRunning = utils.hasScriptVar(player, "surveying.takingSamples") || utils.hasScriptVar(self, "surveying.takingSamples") || resource.hasPendingPlanetaryMiningSamplingAuthorization(player);
         if (loopRunning)
         {
             sendSystemMessage(player, SID_SURVEY_SAMPLE);
@@ -443,31 +451,6 @@ public class survey_tool_script extends script.base_script
     }
     public int OnRequestCoreSample(obj_id self, obj_id player, String resource_type) throws InterruptedException
     {
-        if (hasScript(player, "quest.force_sensitive.fs_survey_player"))
-        {
-            if (hasObjVar(player, "quest.survey.specialResource"))
-            {
-                int winner = rand(1, 3);
-                if (winner == 3)
-                {
-                    String type = getStringObjVar(player, "quest.oldresource.type");
-                    if (type != null && !type.equals(""))
-                    {
-                        String special = pickSpecialResourceToGive(player, resource_type);
-                        obj_id backpack = utils.getInventoryContainer(player);
-                        obj_id madeObject = createObject(special, backpack, null);
-                        float efficiency = getFloatObjVar(player, "quest.survey.efficency");
-                        setSpecialResourceObjVars(special, madeObject, efficiency);
-                        removeObjVar(player, "quest.survey.specialResource");
-                    }
-                }
-                else 
-                {
-                    removeObjVar(player, "quest.survey.specialResource");
-                    sendSystemMessage(player, "", null);
-                }
-            }
-        }
         if (hasObjVar(player, "surveying.sampleCrateGenFailed"))
         {
             removeObjVar(player, "surveying.sampleCrateGenFailed");
@@ -478,13 +461,18 @@ public class survey_tool_script extends script.base_script
             sendSystemMessage(player, getString(new string_id(STF, "must_have_harvester")), null);
             return SCRIPT_CONTINUE;
         }
+        if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE))
+        {
+            sendSystemMessage(player, resource.SID_PLANETARY_MINING_SURVEY_LICENSE_OCCUPIED);
+            return SCRIPT_CONTINUE;
+        }
         boolean surveying = utils.hasScriptVar(player, "surveying.surveying") || utils.hasScriptVar(self, "surveying.surveying");
         if (surveying)
         {
             sendSystemMessage(player, SID_SAMPLE_SURVEY);
             return SCRIPT_CONTINUE;
         }
-        if (utils.hasScriptVar(player, "surveying.takingSamples") || utils.hasScriptVar(self, "surveying.takingSamples"))
+        if (utils.hasScriptVar(player, "surveying.takingSamples") || utils.hasScriptVar(self, "surveying.takingSamples") || resource.hasPendingPlanetaryMiningSamplingAuthorization(player))
         {
             sendSystemMessage(player, SID_ALREADY_SAMPLING);
             return SCRIPT_CONTINUE;
@@ -607,6 +595,61 @@ public class survey_tool_script extends script.base_script
                 utils.removeScriptVarTree(player, "surveying.radioactive");
             }
         }
+        if (!resource.beginPlanetaryMiningSamplingAuthorization(player, self, resource_type))
+        {
+            resource.cleanupTool(player, self, "tool_destroy");
+            sendSystemMessage(player, resource.SID_PLANETARY_MINING_ACCOUNT_SAMPLING_UNAVAILABLE);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public boolean isAuthorizedSamplingStartValid(obj_id self, obj_id player, String resource_type) throws InterruptedException
+    {
+        if (!isIdValid(player) || !player.isAuthoritative() || resource_type == null || resource_type.equals("") || !utils.isNestedWithin(self, player) || hasObjVar(self, "energy_survey_tool"))
+        {
+            return false;
+        }
+        if (hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE) || utils.hasScriptVar(player, "surveying.surveying") || utils.hasScriptVar(self, "surveying.surveying") || utils.hasScriptVar(player, "surveying.takingSamples") || utils.hasScriptVar(self, "surveying.takingSamples"))
+        {
+            return false;
+        }
+        obj_id playerCurrentMount = getMountId(player);
+        if ((!isIdValid(playerCurrentMount) && getTopMostContainer(player) != player) || (isIdValid(playerCurrentMount) && playerCurrentMount != getTopMostContainer(player)) || getState(player, STATE_SWIMMING) == 1 || getPosture(player) == POSTURE_SITTING || getPosture(player) == POSTURE_SKILL_ANIMATING || ai_lib.isInCombat(player))
+        {
+            return false;
+        }
+        obj_id typeId = getResourceTypeByName(resource_type);
+        String resourceClass = getStringObjVar(self, resource.VAR_SURVEY_CLASS);
+        return isIdValid(typeId) && resourceClass != null && !resourceClass.equals("") && isResourceDerivedFrom(typeId, resourceClass);
+    }
+    public void applyAuthorizedSamplingQuestEffects(obj_id self, obj_id player, String resource_type) throws InterruptedException
+    {
+        if (!hasScript(player, "quest.force_sensitive.fs_survey_player") || !hasObjVar(player, "quest.survey.specialResource"))
+        {
+            return;
+        }
+        int winner = rand(1, 3);
+        if (winner == 3)
+        {
+            String type = getStringObjVar(player, "quest.oldresource.type");
+            if (type != null && !type.equals(""))
+            {
+                String special = pickSpecialResourceToGive(player, resource_type);
+                obj_id backpack = utils.getInventoryContainer(player);
+                obj_id madeObject = createObject(special, backpack, null);
+                float efficiency = getFloatObjVar(player, "quest.survey.efficency");
+                setSpecialResourceObjVars(special, madeObject, efficiency);
+                removeObjVar(player, "quest.survey.specialResource");
+            }
+        }
+        else
+        {
+            removeObjVar(player, "quest.survey.specialResource");
+            sendSystemMessage(player, "", null);
+        }
+    }
+    public void startAuthorizedSampling(obj_id self, obj_id player, String resource_type, int sessionSequence) throws InterruptedException
+    {
+        applyAuthorizedSamplingQuestEffects(self, player, resource_type);
         utils.setScriptVar(self, "surveying.player", player);
         utils.setScriptVar(player, "surveying.tool", self);
         utils.setScriptVar(player, "surveying.takingSamples", 1);
@@ -616,11 +659,58 @@ public class survey_tool_script extends script.base_script
         utils.setScriptVar(player, "surveying.outstandingHarvestMessage", getGameTime() + getSurveyToolDelay(player) + 5);
         dictionary outparams = new dictionary();
         outparams.put("player", player);
+        outparams.put("sessionEpoch", getIntObjVar(player, resource.VAR_PLANETARY_MINING_SAMPLING_IDENTITY_EPOCH));
+        outparams.put("sessionSequence", sessionSequence);
+        outparams.put("claimSequence", getIntObjVar(player, resource.VAR_PLANETARY_MINING_SAMPLING_IDENTITY_CLAIM));
         messageTo(self, "sampleLoop", outparams, 1.0f, false);
         messageTo(self, "samplingEffect", outparams, 1.0f, false);
         prose_package pp = prose.getPackage(SID_START_SAMPLING, resource_type);
         sendSystemMessageProse(player, pp);
         xp.grantCraftingXpChance(self, player, 30);
+    }
+    public int handlePlanetaryMiningSamplingAuthorization(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || !self.equals(params.getObjId("tool")))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id player = params.getObjId("player");
+        if (!isIdValid(player) || !player.isAuthoritative())
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int kind = params.getInt("kind");
+        int sessionSequence = params.getInt("sessionSequence");
+        String resourceType = getStringObjVar(player, resource.VAR_PLANETARY_MINING_SAMPLING_IDENTITY_RESOURCE);
+        if (kind == resource.PLANETARY_MINING_SAMPLING_AUTHORIZATION_START)
+        {
+            if (!resource.isPlanetaryMiningSamplingAuthorizationPending(player, self, params.getInt("sessionEpoch"), sessionSequence, params.getInt("claimSequence"), params.getInt("requestSequence"), kind))
+            {
+                return SCRIPT_CONTINUE;
+            }
+            if (!isAuthorizedSamplingStartValid(self, player, resourceType) || !resource.consumePlanetaryMiningSamplingAuthorization(player, self, params, kind))
+            {
+                resource.cleanupTool(player, self);
+                return SCRIPT_CONTINUE;
+            }
+            startAuthorizedSampling(self, player, resourceType, sessionSequence);
+        }
+        return SCRIPT_CONTINUE;
+    }
+    public int planetaryMiningSamplingHeartbeat(obj_id self, dictionary params) throws InterruptedException
+    {
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePlanetaryMiningSamplingNodeChoice(obj_id self, dictionary params) throws InterruptedException
+    {
+        return SCRIPT_CONTINUE;
+    }
+    public int handlePlanetaryMiningSamplingGambleChoice(obj_id self, dictionary params) throws InterruptedException
+    {
+        return SCRIPT_CONTINUE;
+    }
+    public int requestPendingPlanetaryMiningSamplingEventAuthorization(obj_id self, dictionary params) throws InterruptedException
+    {
         return SCRIPT_CONTINUE;
     }
     public int sampleLoop(obj_id self, dictionary params) throws InterruptedException
@@ -630,8 +720,13 @@ public class survey_tool_script extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = params.getObjId("player");
-        if (player == null)
+        if (!resource.isCurrentPlanetaryMiningSamplingIdentity(player, self, params))
         {
+            return SCRIPT_CONTINUE;
+        }
+        if (utils.hasScriptVar(player, resource.SCRIPTVAR_PLANETARY_MINING_SAMPLING_EVENT_SESSION))
+        {
+            // The open page or its exact queued continuation owns resumption.
             return SCRIPT_CONTINUE;
         }
         boolean loopRunning = utils.hasScriptVar(player, "surveying.takingSamples") || utils.hasScriptVar(self, "surveying.takingSamples");
@@ -656,7 +751,6 @@ public class survey_tool_script extends script.base_script
         utils.setScriptVar(self, "surveying.takingSamples", 1);
         location playerCurrent = getLocation(player);
         location sampleLocation = getLocationObjVar(player, "surveying.sampleLocation");
-        String resource_type = utils.getStringScriptVar(player, "surveying.resource");
         float dist = 0.0f;
         if (sampleLocation != null)
         {
@@ -668,39 +762,65 @@ public class survey_tool_script extends script.base_script
             resource.cleanupTool(player, self);
             return SCRIPT_CONTINUE;
         }
-        int action = getAttrib(player, ACTION);
-        int actioncost = SAMPLE_ACTION_COST * (getLevel(player) / 2);
-        if (!drainAttributes(player, actioncost, 0))
-        {
-            sendSystemMessage(player, SID_SAMPLE_MIND);
-            resource.cleanupTool(player, self);
-            queueCommand(player, (-1465754503), player, "No params.", COMMAND_PRIORITY_FRONT);
-            return SCRIPT_OVERRIDE;
-        }
-        setObjVar(player, "surveying.sampleLocation", playerCurrent);
-        int sampleRes = resource.getSample(player, self, resource_type);
-        if (sampleRes == resource.SAMPLE_STOP_LOOP)
-        {
-            resource.cleanupTool(player, self);
-            if (hasObjVar(player, "surveying.sampleCrateGenFailed"))
-            {
-                removeObjVar(player, "surveying.sampleCrateGenFailed");
-            }
-            queueCommand(player, (-1465754503), player, "No params.", COMMAND_PRIORITY_FRONT);
-        }
-        else if (sampleRes == resource.SAMPLE_PAUSE_LOOP_EVENT)
-        {
-        }
-        else 
-        {
-            messageTo(self, "samplingEffect", params, getSurveyToolDelay(player), false);
-            messageTo(self, "resourceHarvest", params, getSurveyToolDelay(player) + 2, false);
-            if (!utils.hasScriptVar(player, "surveying.outstandingHarvestMessage"))
-            {
-                utils.setScriptVar(player, "surveying.outstandingHarvestMessage", getGameTime() + getSurveyToolDelay(player) + 4);
-            }
-        }
+        performAuthorizedSampleIteration(self, player, params);
         return SCRIPT_CONTINUE;
+    }
+    public int performAuthorizedSampleIteration(obj_id self, obj_id player, dictionary params) throws InterruptedException
+    {
+        if (!resource.isCurrentPlanetaryMiningSamplingIdentity(player, self, params) || !utils.hasScriptVar(player, "surveying.takingSamples") || !utils.hasScriptVar(self, "surveying.takingSamples") || !utils.isNestedWithin(self, player) || utils.hasScriptVar(player, "surveying.surveying") || utils.hasScriptVar(self, "surveying.surveying") || hasObjVar(player, resource.VAR_PLANETARY_MINING_SURVEY_LICENSE) || buff.hasBuff(player, resource.BUFF_PLANETARY_MINING_SURVEY_LICENSE) || !resource.beginPlanetaryMiningSampleOperation(player, self, params))
+        {
+            resource.cleanupTool(player, self);
+            return SCRIPT_CONTINUE;
+        }
+        try
+        {
+            location playerCurrent = getLocation(player);
+            location sampleLocation = getLocationObjVar(player, "surveying.sampleLocation");
+            if (sampleLocation != null && utils.getDistance(playerCurrent, sampleLocation) > 1.0f)
+            {
+                sendSystemMessage(player, SID_SAMPLE_CANCEL);
+                resource.cleanupTool(player, self);
+                return SCRIPT_CONTINUE;
+            }
+            int actioncost = SAMPLE_ACTION_COST * (getLevel(player) / 2);
+            if (!drainAttributes(player, actioncost, 0) || !resource.isCurrentPlanetaryMiningSamplingIdentity(player, self, params))
+            {
+                sendSystemMessage(player, SID_SAMPLE_MIND);
+                resource.cleanupTool(player, self);
+                queueCommand(player, (-1465754503), player, "No params.", COMMAND_PRIORITY_FRONT);
+                return SCRIPT_OVERRIDE;
+            }
+            setObjVar(player, "surveying.sampleLocation", playerCurrent);
+            String resource_type = utils.getStringScriptVar(player, "surveying.resource");
+            int sampleRes = resource.getSample(player, self, resource_type);
+            if (!resource.isCurrentPlanetaryMiningSamplingIdentity(player, self, params))
+            {
+                return SCRIPT_CONTINUE;
+            }
+            if (sampleRes == resource.SAMPLE_STOP_LOOP)
+            {
+                resource.cleanupTool(player, self);
+                if (hasObjVar(player, "surveying.sampleCrateGenFailed"))
+                {
+                    removeObjVar(player, "surveying.sampleCrateGenFailed");
+                }
+                queueCommand(player, (-1465754503), player, "No params.", COMMAND_PRIORITY_FRONT);
+            }
+            else if (sampleRes != resource.SAMPLE_PAUSE_LOOP_EVENT)
+            {
+                messageTo(self, "samplingEffect", params, getSurveyToolDelay(player), false);
+                messageTo(self, "resourceHarvest", params, getSurveyToolDelay(player) + 2, false);
+                if (!utils.hasScriptVar(player, "surveying.outstandingHarvestMessage"))
+                {
+                    utils.setScriptVar(player, "surveying.outstandingHarvestMessage", getGameTime() + getSurveyToolDelay(player) + 4);
+                }
+            }
+            return SCRIPT_CONTINUE;
+        }
+        finally
+        {
+            resource.endPlanetaryMiningSampleOperation(player);
+        }
     }
     public int handleRadioactiveConfirm(obj_id self, dictionary params) throws InterruptedException
     {
@@ -738,7 +858,7 @@ public class survey_tool_script extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id player = params.getObjId("player");
-        if (!isIdValid(player))
+        if (!resource.isCurrentPlanetaryMiningSamplingIdentity(player, self, params))
         {
             return SCRIPT_CONTINUE;
         }
@@ -775,8 +895,12 @@ public class survey_tool_script extends script.base_script
     }
     public int resourceHarvest(obj_id self, dictionary params) throws InterruptedException
     {
+        if (params == null)
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = params.getObjId("player");
-        if (player.isAuthoritative() == false)
+        if (!resource.isCurrentPlanetaryMiningSamplingIdentity(player, self, params) || player.isAuthoritative() == false)
         {
             debugServerConsoleMsg(player, "player has gone offline or something. BAD! Not authoritative");
             return SCRIPT_CONTINUE;
@@ -857,7 +981,15 @@ public class survey_tool_script extends script.base_script
     }
     public int continueSampleLoop(obj_id self, dictionary params) throws InterruptedException
     {
+        if (params == null)
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = params.getObjId("player");
+        if (!utils.hasScriptVar(player, "surveying.takingSamples") || !utils.hasScriptVar(self, "surveying.takingSamples") || !resource.consumePlanetaryMiningSamplingContinuation(player, self, params, params.getInt("eventKind")))
+        {
+            return SCRIPT_CONTINUE;
+        }
         messageTo(self, "samplingEffect", params, getSurveyToolDelay(player), false);
         messageTo(self, "resourceHarvest", params, getSurveyToolDelay(player) + 2, false);
         utils.setScriptVar(player, "surveying.outstandingHarvestMessage", getGameTime() + getSurveyToolDelay(player) + 4);
@@ -865,7 +997,15 @@ public class survey_tool_script extends script.base_script
     }
     public int stopSampleEvent(obj_id self, dictionary params) throws InterruptedException
     {
+        if (params == null)
+        {
+            return SCRIPT_CONTINUE;
+        }
         obj_id player = params.getObjId("player");
+        if (!resource.consumePlanetaryMiningSamplingContinuation(player, self, params, resource.PLANETARY_MINING_SAMPLING_EVENT_NODE))
+        {
+            return SCRIPT_CONTINUE;
+        }
         resource.cleanupTool(player, self);
         queueCommand(player, (-1465754503), player, "No params.", COMMAND_PRIORITY_FRONT);
         return SCRIPT_CONTINUE;

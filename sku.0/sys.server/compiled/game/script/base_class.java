@@ -13926,6 +13926,11 @@ public class base_class
     {
         return _requestSurvey(getLongWithNull(player), parentResourceClass, resourceTypeName, surveyRange, numPoints);
     }
+    private static native boolean      _requestPmdSurvey(long player, long callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z);
+    public static boolean      requestPmdSurvey(obj_id player, obj_id callbackTarget, String parentResourceClass, String resourceTypeName, String planetName, float x, float z)
+    {
+        return _requestPmdSurvey(getLongWithNull(player), getLongWithNull(callbackTarget), parentResourceClass, resourceTypeName, planetName, x, z);
+    }
     /**
      * Choose a resource type that has a non-depleted pool on the current planet.
      * @param parentResourceClass restrict the results to something derived from this class
@@ -13966,6 +13971,11 @@ public class base_class
     public static boolean      addResourceToContainer(obj_id resourceContainer, obj_id resourceType, int amount, obj_id sourcePlayer)
     {
         return _addResourceToContainer(getLongWithNull(resourceContainer), getLongWithNull(resourceType), amount, getLongWithNull(sourcePlayer));
+    }
+    private static native int          _getResourceDepletionTime(long resourceType);
+    public static int          getResourceDepletionTime(obj_id resourceType)
+    {
+        return _getResourceDepletionTime(getLongWithNull(resourceType));
     }
     /**
      * Remove resources from a container.

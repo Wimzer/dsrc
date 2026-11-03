@@ -1,0 +1,33 @@
+@base object/draft_schematic/base/shared_base_draft_schematic.iff
+@class draft_schematic_object_template 2
+
+attributes = [
+	[name = "crafting" "complexity", experiment = "" "", value = 20..20],
+	[name = "crafting" "xp", experiment = "" "", value = 490..490],
+	[name = "crafting" "charges", experiment = "planetary_mining_droid" "exp_charges", value = 1..10],
+	[name = "crafting" "duration", experiment = "planetary_mining_droid" "exp_duration", value = 20..24]]
+
+slots = [
+	[name = "planetary_mining_droid" "load_bearing_frame", hardpoint = ""],
+	[name = "planetary_mining_droid" "bore_mechanism", hardpoint = ""],
+	[name = "planetary_mining_droid" "cargo_hold", hardpoint = ""],
+	[name = "planetary_mining_droid" "survey_operations_computer", hardpoint = ""],
+	[name = "planetary_mining_droid" "terrain_manipulator", hardpoint = ""],
+	[name = "planetary_mining_droid" "resource_extraction_equipment", hardpoint = ""]]
+
+craftedSharedTemplate="object/tangible/component/droid/shared_planetary_mining_droid.iff"
+
+@class intangible_object_template 0
+
+@class object_template 5
+
+objectName = "planetary_mining_droid" "planetary_mining_droid"
+lookAtText = "planetary_mining_droid" "planetary_mining_droid"
+
+snapToTerrain = false
+containerType = CT_none
+tintPalette = ""
+slotDescriptorFilename = ""
+arrangementDescriptorFilename = "abstract/slot/arrangement/arrangement_datapad.iff"
+portalLayoutFilename = ""
+clientDataFile = ""

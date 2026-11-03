@@ -777,6 +777,7 @@ craftdroidGroupE	object/draft_schematic/droid/component/chassis_droid_binary_loa
 craftdroidGroupE	object/draft_schematic/droid/component/chassis_droid_3p0.iff
 craftdroidGroupE	object/draft_schematic/droid/navicomputer_5.iff
 craftdroidGroupE	object/draft_schematic/droid/component/detonation_module_4.iff
+craftdroidGroupE	object/draft_schematic/droid/planetary_mining_droid.iff
 craftdroidgenmodGroupE	object/draft_schematic/droid/component/data_storage_module_5.iff
 craftdroidgenmodGroupE	object/draft_schematic/droid/component/item_storage_module_5.iff
 craftdroidgenmodGroupE	object/draft_schematic/droid/component/personality_module_slang.iff

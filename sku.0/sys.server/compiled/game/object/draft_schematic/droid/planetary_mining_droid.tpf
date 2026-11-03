@@ -1,0 +1,66 @@
+@base object/draft_schematic/droid/base_droid_schematic.iff
+@class draft_schematic_object_template 7
+
+itemsPerContainer = 5
+craftedObjectTemplate = "object/tangible/component/droid/planetary_mining_droid.iff"
+
+slots = [
+	[
+	optional=false,
+	name = "planetary_mining_droid" "load_bearing_frame",
+	options = [
+		[ingredientType=IT_resourceClass, ingredients = [[name="planetary_mining_droid" "load_bearing_frame", ingredient="metal", count=110]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional=false,
+	name = "planetary_mining_droid" "bore_mechanism",
+	options = [
+		[ingredientType=IT_resourceClass, ingredients = [[name="planetary_mining_droid" "bore_mechanism", ingredient="gemstone", count=25]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional=false,
+	name = "planetary_mining_droid" "cargo_hold",
+	options = [
+		[ingredientType=IT_resourceClass, ingredients = [[name="planetary_mining_droid" "cargo_hold", ingredient="metal", count=50]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional=false,
+	name = "planetary_mining_droid" "survey_operations_computer",
+	options = [
+		[ingredientType=IT_template, ingredients = [[name="planetary_mining_droid" "survey_operations_computer", ingredient="object/tangible/component/item/electronics_gp_module.iff", count=3]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional=false,
+	name = "planetary_mining_droid" "terrain_manipulator",
+	options = [
+		[ingredientType=IT_template, ingredients = [[name="planetary_mining_droid" "terrain_manipulator", ingredient="object/tangible/component/droid/manipulator_arm.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ],
+	[
+	optional=false,
+	name = "planetary_mining_droid" "resource_extraction_equipment",
+	options = [
+		[ingredientType=IT_template, ingredients = [[name="planetary_mining_droid" "resource_extraction_equipment", ingredient="object/tangible/component/droid/hand_sample_module.iff", count=1]], complexity = 0, skillCommand = "unskilled"]],
+	optionalSkillCommand = "",
+	complexity = 0,
+	appearance = "" ]]
+skillCommands = ["unskilled"]
+
+manufactureScripts = [ "systems.crafting.droid.crafted_items.crafting_planetary_mining_droid" ]
+
+@class intangible_object_template 0
+
+@class object_template 5
+
+complexity = 20
+sharedTemplate = "object/draft_schematic/droid/shared_planetary_mining_droid.iff"
+volume = 1

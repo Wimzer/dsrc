@@ -4952,145 +4952,126 @@ public class base_player extends script.base_script
     }
     public int handleSurveyNodeChoice(obj_id self, dictionary params) throws InterruptedException
     {
-        if (!sui.hasPid(self, resource.PID_NAME))
+        if (params == null)
         {
             return SCRIPT_CONTINUE;
         }
-        sui.removePid(self, resource.PID_NAME);
-        if (!utils.hasScriptVar(self, "surveying.takingSamples"))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id curtool = utils.getObjIdScriptVar(self, "surveying.tool");
         obj_id tool = utils.getObjIdScriptVar(self, "survey_event.tool");
-        if (tool != curtool)
+        dictionary outparams = resource.consumePlanetaryMiningSamplingEventPage(self, tool, params.getInt("pageId"), resource.PLANETARY_MINING_SAMPLING_EVENT_NODE);
+        if (outparams == null || !utils.hasScriptVar(self, "surveying.takingSamples") || !resource.beginPlanetaryMiningSampleOperation(self, tool, outparams))
         {
             return SCRIPT_CONTINUE;
         }
-        int idx = sui.getListboxSelectedRow(params);
-        if (idx < 0)
+        try
         {
-            idx = 0;
-        }
-        obj_id player = sui.getPlayerId(params);
-        int btn = sui.getIntButtonPressed(params);
-        if ((btn == sui.BP_CANCEL) || (idx == 0))
-        {
-            dictionary outparams = new dictionary();
-            outparams.put("player", self);
-            messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
-            return SCRIPT_CONTINUE;
-        }
-        else if (idx == 2)
-        {
-            if (!hasCompletedCollection(player, "sampling_pet_collection"))
+            int idx = sui.getListboxSelectedRow(params);
+            if (idx < 0)
             {
-                modifyCollectionSlotValue(player, "col_pet_resource_sampling", 1);
+                idx = 0;
             }
-            int dieRoll = rand(1, 100);
-            if (dieRoll < 75)
+            obj_id player = sui.getPlayerId(params);
+            int btn = sui.getIntButtonPressed(params);
+            if ((btn == sui.BP_CANCEL) || (idx == 0))
             {
-                utils.setScriptVar(player, "survey_event.gamble", 3);
+                messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
+                return SCRIPT_CONTINUE;
             }
-            else 
+            else if (idx == 2)
             {
-                utils.setScriptVar(player, "survey_event.gamble", 4);
+                if (!hasCompletedCollection(player, "sampling_pet_collection"))
+                {
+                    modifyCollectionSlotValue(player, "col_pet_resource_sampling", 1);
+                }
+                int dieRoll = rand(1, 100);
+                if (dieRoll < 75)
+                {
+                    utils.setScriptVar(player, "survey_event.gamble", 3);
+                }
+                else 
+                {
+                    utils.setScriptVar(player, "survey_event.gamble", 4);
+                }
+                messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
+                return SCRIPT_CONTINUE;
             }
-            dictionary outparams = new dictionary();
-            outparams.put("player", self);
-            messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
+            location point = locations.getGoodLocationAroundLocation(getLocation(self), 10, 10, 50, 50, true, false);
+            if (point != null)
+            {
+                obj_id waypoint = getSurveyWaypoint(self);
+                if (!isIdValid(waypoint))
+                {
+                    waypoint = createWaypointInDatapad(self, point);
+                }
+                if (isIdValid(waypoint))
+                {
+                    setWaypointVisible(waypoint, true);
+                    setWaypointActive(waypoint, true);
+                    setWaypointLocation(waypoint, point);
+                    setWaypointName(waypoint, "Resource Survey");
+                    setWaypointColor(waypoint, "blue");
+                }
+                sendSystemMessage(self, SID_NODE_WAYPOINT);
+                utils.setScriptVar(self, "survey_event.location", point);
+            }
+            messageTo(tool, "stopSampleEvent", outparams, 0.0f, false);
             return SCRIPT_CONTINUE;
         }
-        dictionary outparams = new dictionary();
-        outparams.put("player", self);
-        messageTo(tool, "stopSampleEvent", outparams, 0.0f, false);
-        location point = locations.getGoodLocationAroundLocation(getLocation(self), 10, 10, 50, 50, true, false);
-        if (point == null)
+        finally
         {
-            return SCRIPT_CONTINUE;
+            resource.endPlanetaryMiningSampleOperation(self);
         }
-        obj_id waypoint = getSurveyWaypoint(self);
-        if (!isIdValid(waypoint))
-        {
-            waypoint = createWaypointInDatapad(self, point);
-        }
-        if (isIdValid(waypoint))
-        {
-            setWaypointVisible(waypoint, true);
-            setWaypointActive(waypoint, true);
-            setWaypointLocation(waypoint, point);
-            setWaypointName(waypoint, "Resource Survey");
-            setWaypointColor(waypoint, "blue");
-        }
-        sendSystemMessage(self, SID_NODE_WAYPOINT);
-        utils.setScriptVar(self, "survey_event.location", point);
-        return SCRIPT_CONTINUE;
     }
     public int handleSurveyGambleChoice(obj_id self, dictionary params) throws InterruptedException
     {
-        if (!sui.hasPid(self, resource.PID_NAME))
+        if (params == null)
         {
             return SCRIPT_CONTINUE;
         }
-        sui.removePid(self, resource.PID_NAME);
-        if (!utils.hasScriptVar(self, "surveying.takingSamples"))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        obj_id curtool = utils.getObjIdScriptVar(self, "surveying.tool");
         obj_id tool = utils.getObjIdScriptVar(self, "survey_event.tool");
-        if (tool != curtool)
+        dictionary outparams = resource.consumePlanetaryMiningSamplingEventPage(self, tool, params.getInt("pageId"), resource.PLANETARY_MINING_SAMPLING_EVENT_GAMBLE);
+        if (outparams == null || !utils.hasScriptVar(self, "surveying.takingSamples") || !resource.beginPlanetaryMiningSampleOperation(self, tool, outparams))
         {
             return SCRIPT_CONTINUE;
         }
-        int idx = sui.getListboxSelectedRow(params);
-        if (idx < 0)
+        try
         {
-            idx = 0;
-        }
-        obj_id player = sui.getPlayerId(params);
-        int btn = sui.getIntButtonPressed(params);
-        if ((btn == sui.BP_CANCEL) || (idx == 0))
-        {
-            dictionary outparams = new dictionary();
-            outparams.put("player", self);
+            int idx = sui.getListboxSelectedRow(params);
+            if (idx < 0)
+            {
+                idx = 0;
+            }
+            obj_id player = sui.getPlayerId(params);
+            int btn = sui.getIntButtonPressed(params);
+            if ((btn == sui.BP_CANCEL) || (idx == 0))
+            {
+                messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
+                return SCRIPT_CONTINUE;
+            }
+            int actioncost = 2000;
+            if (!drainAttributes(player, actioncost, 0))
+            {
+                sendSystemMessage(player, SID_GAMBLE_NO_ACTION);
+                messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
+                return SCRIPT_CONTINUE;
+            }
+            if (idx == 2)
+            {
+                String resource_class = getStringObjVar(tool, resource.VAR_SURVEY_CLASS);
+                String collectionName = "col_resource_" + resource_class + "_01";
+                modifyCollectionSlotValue(player, collectionName, 1);
+                utils.setScriptVar(player, "survey_event.gamble", 5);
+            }
+            else
+            {
+                utils.setScriptVar(player, "survey_event.gamble", rand(1, 100) < 75 ? 1 : 2);
+            }
             messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
             return SCRIPT_CONTINUE;
         }
-        int action = getAttrib(player, ACTION);
-        int actioncost = 2000;
-        if (!drainAttributes(player, actioncost, 0))
+        finally
         {
-            sendSystemMessage(player, SID_GAMBLE_NO_ACTION);
-            dictionary outparams = new dictionary();
-            outparams.put("player", self);
-            messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
-            return SCRIPT_CONTINUE;
+            resource.endPlanetaryMiningSampleOperation(self);
         }
-        if (idx == 2)
-        {
-            String resource_class = getStringObjVar(tool, resource.VAR_SURVEY_CLASS);
-            String collectionName = "col_resource_" + resource_class + "_01";
-            modifyCollectionSlotValue(player, collectionName, 1);
-            utils.setScriptVar(player, "survey_event.gamble", 5);
-            dictionary outparams = new dictionary();
-            outparams.put("player", self);
-            messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
-            return SCRIPT_CONTINUE;
-        }
-        int dieRoll = rand(1, 100);
-        if (dieRoll < 75)
-        {
-            utils.setScriptVar(player, "survey_event.gamble", 1);
-        }
-        else 
-        {
-            utils.setScriptVar(player, "survey_event.gamble", 2);
-        }
-        dictionary outparams = new dictionary();
-        outparams.put("player", self);
-        messageTo(tool, "continueSampleLoop", outparams, 0.0f, false);
-        return SCRIPT_CONTINUE;
     }
     public int cmdHarvestDNA(obj_id self, obj_id target, String params, float defaultTime) throws InterruptedException
     {
