@@ -541,9 +541,21 @@ public class planetary_mining_controller extends script.base_script
         {
             return;
         }
+        dictionary state = null;
         for (obj_id subscriber : subscribers)
         {
-            sendCapacityState(self, subscriber, stationId);
+            if (!isIdValid(subscriber) || stationId < 1)
+            {
+                continue;
+            }
+            if (state == null)
+            {
+                // One snapshot per notification, not a cache across updates.
+                state = buildCapacityState(self, stationId);
+            }
+            dictionary response = new dictionary();
+            response.putAll(state);
+            messageTo(subscriber, "handlePlanetaryMiningAccountSamplingState", response, 0.0f, false);
         }
     }
 
@@ -714,6 +726,12 @@ public class planetary_mining_controller extends script.base_script
         {
             return;
         }
+        dictionary state = buildCapacityState(self, stationId);
+        messageTo(player, "handlePlanetaryMiningAccountSamplingState", state, 0.0f, false);
+    }
+
+    public dictionary buildCapacityState(obj_id self, int stationId) throws InterruptedException
+    {
         reconcileCapacityConfiguration(self, stationId);
         int capacity = getSharedActivityCapacity();
         int occupied = getSharedActivityOccupancy(self, stationId);
@@ -723,7 +741,7 @@ public class planetary_mining_controller extends script.base_script
         state.put("full", occupied >= capacity);
         state.put("capacityRevision", getCapacityRevision(self, stationId));
         state.put("nextPmdCompletionAt", getNextPmdCompletionAt(self, stationId));
-        messageTo(player, "handlePlanetaryMiningAccountSamplingState", state, 0.0f, false);
+        return state;
     }
 
     public void recoverSamplingClaims(obj_id self) throws InterruptedException
