@@ -1,7 +1,7 @@
 @base object/draft_schematic/droid/base_droid_schematic.iff
 @class draft_schematic_object_template 7
 
-itemsPerContainer = 5
+itemsPerContainer = 100
 craftedObjectTemplate = "object/tangible/component/droid/planetary_mining_droid.iff"
 
 slots = [

@@ -52,15 +52,18 @@ public class planetary_mining extends script.base_script
     public static final String PID_NAME = "planetaryMiningDroid";
     public static final String DISPLAY_NAME = "Planetary Mining Droid";
     public static final float MIN_ACTIVE_DENSITY = 0.0001f;
-    public static final float RRYATT_TRAIL_WORLD_OFFSET_X = 1294.0f;
-    public static final float RRYATT_TRAIL_WORLD_OFFSET_Z = 3880.0f;
     public static final float MOVEMENT_CHECK_INTERVAL = 1.0f;
     public static final int FLOW_BEGIN_BUSY = 0;
     public static final int FLOW_BEGIN_FAILED = -1;
 
     public int OnInitialize(obj_id self) throws InterruptedException
     {
-        setName(self, DISPLAY_NAME);
+        // Apply the default name once; preserve any name the crafter or owner assigned.
+        String assignedName = getAssignedName(self);
+        if (assignedName == null || assignedName.equals(""))
+        {
+            setName(self, DISPLAY_NAME);
+        }
         return SCRIPT_CONTINUE;
     }
 
@@ -351,17 +354,15 @@ public class planetary_mining extends script.base_script
     public void showMiningResourceConfirmation(obj_id self, obj_id player, resource_density activeResource, location selectedSite) throws InterruptedException
     {
         obj_id resourceType = activeResource.getResourceType();
+        // Report coordinates the way the client displays them (radar, /loc, waypoints):
+        // relative to the containing buildout area, or its composite, as in base_player.
         float displayX = selectedSite.x;
         float displayZ = selectedSite.z;
-        if (selectedSite.area.equals("mustafar"))
+        float[] buildoutArea = getBuildoutAreaSizeAndCenter(selectedSite.x, selectedSite.z, selectedSite.area, true, true);
+        if (buildoutArea != null && buildoutArea.length == 4)
         {
-            displayX += 2880.0f;
-            displayZ -= 2976.0f;
-        }
-        else if (selectedSite.area.equals("kashyyyk_rryatt_trail"))
-        {
-            displayX -= RRYATT_TRAIL_WORLD_OFFSET_X;
-            displayZ -= RRYATT_TRAIL_WORLD_OFFSET_Z;
+            displayX -= buildoutArea[2];
+            displayZ -= buildoutArea[3];
         }
         StringBuilder prompt = new StringBuilder();
         prompt.append("Resource Name: ").append(getLocalizedResourceName(resourceType));

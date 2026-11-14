@@ -60,6 +60,8 @@ public class resource extends script.base_script
     public static final int PLANETARY_MINING_BASE_SAMPLING_DELAY = 25;
     public static final int PLANETARY_MINING_MIN_SAMPLING_DELAY = 10;
     public static final int PLANETARY_MINING_SAMPLE_LOOP_OVERHEAD = 3;
+    public static final int PLANETARY_MINING_CRITICAL_ROLL = 10;
+    public static final float PLANETARY_MINING_CRITICAL_CHANCE = 0.5f;
     public static final String BUFF_PLANETARY_MINING_SURVEY_LICENSE = "pmd_survey_license_occupied";
     public static final String BUFF_PLANETARY_MINING_ACCOUNT_SAMPLING_RESTRICTED = "pmd_account_hand_sampling_restricted";
     public static final String VAR_PLANETARY_MINING_ACCOUNT_SAMPLING = "planetary_mining.account_sampling";
@@ -271,19 +273,34 @@ public class resource extends script.base_script
                 float resultModifier = ((2 * chance) - roll) / (2 * chance);
                 int successfulAmount = (int)(potentialAmount * resultModifier);
                 successfulAmount = Math.max(1, successfulAmount);
-                if (samplingIncrease > 0)
+                int sampleAmount = applyPlanetaryMiningSampleModifiers(successfulAmount, samplingIncrease, falleensFist);
+                if (roll <= PLANETARY_MINING_CRITICAL_ROLL)
                 {
-                    successfulAmount += (int)(successfulAmount * samplingIncrease / 100.0f);
+                    // getSample: half of these rolls are a critical success that doubles
+                    // the sample before expertise and Falleen's Fist are applied.
+                    int criticalAmount = applyPlanetaryMiningSampleModifiers(successfulAmount * 2, samplingIncrease, falleensFist);
+                    expectedAmount += (criticalAmount * PLANETARY_MINING_CRITICAL_CHANCE + sampleAmount * (1.0f - PLANETARY_MINING_CRITICAL_CHANCE)) / 100.0f;
                 }
-                if (falleensFist)
+                else
                 {
-                    successfulAmount = (int)(successfulAmount * 1.5f);
+                    expectedAmount += sampleAmount / 100.0f;
                 }
-                expectedAmount += successfulAmount / 100.0f;
             }
         }
         int sampleCount = duration / samplingInterval;
         return (int)(expectedAmount * sampleCount);
+    }
+    public static int applyPlanetaryMiningSampleModifiers(int amount, int samplingIncrease, boolean falleensFist) throws InterruptedException
+    {
+        if (samplingIncrease > 0)
+        {
+            amount += (int)(amount * samplingIncrease / 100.0f);
+        }
+        if (falleensFist)
+        {
+            amount = (int)(amount * 1.5f);
+        }
+        return amount;
     }
     public static int getPlanetaryMiningDuration(obj_id item) throws InterruptedException
     {
