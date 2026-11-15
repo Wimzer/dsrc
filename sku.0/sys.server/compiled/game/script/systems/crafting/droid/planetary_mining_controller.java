@@ -60,10 +60,10 @@ public class planetary_mining_controller extends script.base_script
             {
                 continue;
             }
-            int stationId;
+            long stationId;
             try
             {
-                stationId = Integer.parseInt(accountVar.getName());
+                stationId = Long.parseLong(accountVar.getName());
             }
             catch (NumberFormatException exception)
             {
@@ -97,7 +97,7 @@ public class planetary_mining_controller extends script.base_script
         }
     }
 
-    public void recoverJob(obj_id self, int stationId, obj_id player) throws InterruptedException
+    public void recoverJob(obj_id self, long stationId, obj_id player) throws InterruptedException
     {
         String path = getJobPath(stationId, player);
         int sequence = getIntObjVar(self, path + ".sequence");
@@ -129,7 +129,7 @@ public class planetary_mining_controller extends script.base_script
     {
         obj_id player = getRequestPlayer(params);
         int sequence = params == null ? 0 : params.getInt("jobSequence");
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         if (stationId < 1 || sequence < 1)
         {
             sendReservationResponse(self, player, sequence, false, "invalid_request");
@@ -178,7 +178,7 @@ public class planetary_mining_controller extends script.base_script
     {
         obj_id player = getRequestPlayer(params);
         int sequence = params == null ? 0 : params.getInt("jobSequence");
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         String path = getJobPath(stationId, player);
         if (stationId < 1 || sequence < 1 || getIntObjVar(self, path + ".sequence") != sequence)
         {
@@ -230,7 +230,7 @@ public class planetary_mining_controller extends script.base_script
     {
         obj_id player = getRequestPlayer(params);
         int sequence = params == null ? 0 : params.getInt("jobSequence");
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         String path = getJobPath(stationId, player);
         if (stationId > 0 && sequence > 0 && getIntObjVar(self, path + ".sequence") == sequence && getIntObjVar(self, path + ".state") == STATE_RESERVED)
         {
@@ -244,7 +244,7 @@ public class planetary_mining_controller extends script.base_script
     {
         obj_id player = getRequestPlayer(params);
         int requestedSequence = params == null ? 0 : params.getInt("jobSequence");
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         String path = getJobPath(stationId, player);
         if (stationId < 1 || !hasObjVar(self, path))
         {
@@ -272,7 +272,7 @@ public class planetary_mining_controller extends script.base_script
     {
         obj_id player = getRequestPlayer(params);
         int sequence = params == null ? 0 : params.getInt("jobSequence");
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         String path = getJobPath(stationId, player);
         if (stationId < 1 || sequence < 1 || getIntObjVar(self, path + ".sequence") != sequence)
         {
@@ -302,7 +302,7 @@ public class planetary_mining_controller extends script.base_script
     {
         obj_id player = getRequestPlayer(params);
         int sequence = params == null ? 0 : params.getInt("jobSequence");
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         String path = getJobPath(stationId, player);
         if (stationId > 0 && sequence > 0 && getIntObjVar(self, path + ".sequence") == sequence && getIntObjVar(self, path + ".state") == STATE_DELIVERING)
         {
@@ -317,7 +317,7 @@ public class planetary_mining_controller extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        int stationId = params.getInt("stationId");
+        long stationId = getStationIdParam(params);
         obj_id player = params.getObjId("player");
         int sequence = params.getInt("jobSequence");
         String path = getJobPath(stationId, player);
@@ -381,7 +381,7 @@ public class planetary_mining_controller extends script.base_script
         return found && resource.getPlanetaryMiningAmount(density, surveying, duration, samplingInterval, samplingIncrease, falleensFist != 0) > 0;
     }
 
-    public void scheduleJob(obj_id self, int stationId, obj_id player, int sequence) throws InterruptedException
+    public void scheduleJob(obj_id self, long stationId, obj_id player, int sequence) throws InterruptedException
     {
         String path = getJobPath(stationId, player);
         int remaining = Math.max(0, getIntObjVar(self, path + ".started_at") + getIntObjVar(self, path + ".duration") - getCalendarTime());
@@ -397,7 +397,7 @@ public class planetary_mining_controller extends script.base_script
         return getIntObjVar(self, path + ".started_at") + getIntObjVar(self, path + ".duration") <= getCalendarTime();
     }
 
-    public void beginDelivery(obj_id self, int stationId, String path, obj_id player, int sequence, int stopKind) throws InterruptedException
+    public void beginDelivery(obj_id self, long stationId, String path, obj_id player, int sequence, int stopKind) throws InterruptedException
     {
         if (getIntObjVar(self, path + ".state") != STATE_ACTIVE)
         {
@@ -446,7 +446,7 @@ public class planetary_mining_controller extends script.base_script
         response.put("jobSequence", sequence);
         response.put("success", success);
         response.put("reason", reason);
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         response.put("capacity", getSharedActivityCapacity());
         int occupied = stationId > 0 ? getSharedActivityOccupancy(self, stationId) : 0;
         response.put("occupied", occupied);
@@ -500,7 +500,7 @@ public class planetary_mining_controller extends script.base_script
         messageTo(player, "handlePlanetaryMiningDroidSync", response, 0.0f, true);
     }
 
-    public void registerAccountSamplingSubscriber(obj_id self, int stationId, obj_id player) throws InterruptedException
+    public void registerAccountSamplingSubscriber(obj_id self, long stationId, obj_id player) throws InterruptedException
     {
         if (stationId < 1 || !isIdValid(player))
         {
@@ -529,7 +529,7 @@ public class planetary_mining_controller extends script.base_script
         utils.setScriptVar(self, path, updated);
     }
 
-    public void notifyAccountSamplingSubscribers(obj_id self, int stationId) throws InterruptedException
+    public void notifyAccountSamplingSubscribers(obj_id self, long stationId) throws InterruptedException
     {
         String path = getAccountSamplingSubscriberPath(stationId);
         if (!utils.hasScriptVar(self, path))
@@ -559,7 +559,7 @@ public class planetary_mining_controller extends script.base_script
         }
     }
 
-    public void reconcileOverdueStops(obj_id self, int stationId) throws InterruptedException
+    public void reconcileOverdueStops(obj_id self, long stationId) throws InterruptedException
     {
         obj_var_list characters = getObjVarList(self, VAR_JOBS + "." + stationId);
         if (characters == null)
@@ -598,7 +598,7 @@ public class planetary_mining_controller extends script.base_script
         return getIntObjVar(self, path + ".started_at") + getIntObjVar(self, path + ".duration");
     }
 
-    public String getAccountSamplingSubscriberPath(int stationId) throws InterruptedException
+    public String getAccountSamplingSubscriberPath(long stationId) throws InterruptedException
     {
         return SCRIPTVAR_ACCOUNT_SAMPLING_SUBSCRIBERS + "." + stationId;
     }
@@ -608,12 +608,22 @@ public class planetary_mining_controller extends script.base_script
         return params == null ? obj_id.NULL_ID : params.getObjId("player");
     }
 
-    public int getStationId(obj_id player) throws InterruptedException
+    public long getStationId(obj_id player) throws InterruptedException
     {
-        return isIdValid(player) ? getPlayerStationId(player) : 0;
+        // Station ids are unsigned 32-bit (often a hash of the account name), but the
+        // script binding returns a signed int. Read it unsigned so ids at or above
+        // 2^31 are not mistaken for invalid ones; only 0 is invalid.
+        return isIdValid(player) ? (getPlayerStationId(player) & 0xFFFFFFFFL) : 0L;
     }
 
-    public String getJobPath(int stationId, obj_id player) throws InterruptedException
+    public long getStationIdParam(dictionary params) throws InterruptedException
+    {
+        // Due messages scheduled before station ids became long carry an Integer.
+        long stationId = params.getLong("stationId");
+        return stationId != 0 ? stationId : (params.getInt("stationId") & 0xFFFFFFFFL);
+    }
+
+    public String getJobPath(long stationId, obj_id player) throws InterruptedException
     {
         return VAR_JOBS + "." + stationId + "." + (isIdValid(player) ? Long.toString(player.getValue()) : "0");
     }
@@ -624,7 +634,7 @@ public class planetary_mining_controller extends script.base_script
         return configured > 0 ? configured : DEFAULT_SHARED_ACTIVITY_CAPACITY;
     }
 
-    public int getSharedActivityOccupancy(obj_id self, int stationId) throws InterruptedException
+    public int getSharedActivityOccupancy(obj_id self, long stationId) throws InterruptedException
     {
         int occupied = 0;
         obj_var_list jobs = getObjVarList(self, VAR_JOBS + "." + stationId);
@@ -659,12 +669,12 @@ public class planetary_mining_controller extends script.base_script
         return occupied;
     }
 
-    public int getCapacityRevision(obj_id self, int stationId) throws InterruptedException
+    public int getCapacityRevision(obj_id self, long stationId) throws InterruptedException
     {
         return stationId > 0 ? getIntObjVar(self, VAR_CAPACITY + "." + stationId + ".revision") : 0;
     }
 
-    public int getNextPmdCompletionAt(obj_id self, int stationId) throws InterruptedException
+    public int getNextPmdCompletionAt(obj_id self, long stationId) throws InterruptedException
     {
         obj_var_list jobs = stationId > 0 ? getObjVarList(self, VAR_JOBS + "." + stationId) : null;
         int firstDue = 0;
@@ -692,7 +702,7 @@ public class planetary_mining_controller extends script.base_script
         return firstDue;
     }
 
-    public void reconcileCapacityConfiguration(obj_id self, int stationId) throws InterruptedException
+    public void reconcileCapacityConfiguration(obj_id self, long stationId) throws InterruptedException
     {
         if (stationId < 1)
         {
@@ -708,7 +718,7 @@ public class planetary_mining_controller extends script.base_script
         }
     }
 
-    public void capacityChanged(obj_id self, int stationId) throws InterruptedException
+    public void capacityChanged(obj_id self, long stationId) throws InterruptedException
     {
         if (stationId < 1)
         {
@@ -720,7 +730,7 @@ public class planetary_mining_controller extends script.base_script
         notifyAccountSamplingSubscribers(self, stationId);
     }
 
-    public void sendCapacityState(obj_id self, obj_id player, int stationId) throws InterruptedException
+    public void sendCapacityState(obj_id self, obj_id player, long stationId) throws InterruptedException
     {
         if (!isIdValid(player) || stationId < 1)
         {
@@ -730,7 +740,7 @@ public class planetary_mining_controller extends script.base_script
         messageTo(player, "handlePlanetaryMiningAccountSamplingState", state, 0.0f, false);
     }
 
-    public dictionary buildCapacityState(obj_id self, int stationId) throws InterruptedException
+    public dictionary buildCapacityState(obj_id self, long stationId) throws InterruptedException
     {
         reconcileCapacityConfiguration(self, stationId);
         int capacity = getSharedActivityCapacity();
@@ -758,10 +768,10 @@ public class planetary_mining_controller extends script.base_script
             {
                 continue;
             }
-            int stationId;
+            long stationId;
             try
             {
-                stationId = Integer.parseInt(account.getName());
+                stationId = Long.parseLong(account.getName());
             }
             catch (NumberFormatException exception)
             {
@@ -818,10 +828,10 @@ public class planetary_mining_controller extends script.base_script
             {
                 continue;
             }
-            int stationId;
+            long stationId;
             try
             {
-                stationId = Integer.parseInt(account.getName());
+                stationId = Long.parseLong(account.getName());
             }
             catch (NumberFormatException exception)
             {
@@ -907,7 +917,7 @@ public class planetary_mining_controller extends script.base_script
     public int syncPlanetaryMiningSharedCapacity(obj_id self, dictionary params) throws InterruptedException
     {
         obj_id player = getRequestPlayer(params);
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         if (stationId > 0)
         {
             registerAccountSamplingSubscriber(self, stationId, player);
@@ -933,7 +943,7 @@ public class planetary_mining_controller extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         boolean valid = isIdValid(player) && isIdValid(tool) && stationId > 0 && sessionEpoch > 0 && sessionSequence > 0 && claimSequence > 0 && requestSequence > 0;
         boolean allowed = false;
         String reason = "invalid_request";
@@ -977,7 +987,7 @@ public class planetary_mining_controller extends script.base_script
         return SCRIPT_CONTINUE;
     }
 
-    public void commitSamplingClaim(obj_id self, int stationId, obj_id player, obj_id tool, int sessionEpoch, int sessionSequence, int claimSequence) throws InterruptedException
+    public void commitSamplingClaim(obj_id self, long stationId, obj_id player, obj_id tool, int sessionEpoch, int sessionSequence, int claimSequence) throws InterruptedException
     {
         String path = getSamplingClaimPath(stationId, player);
         removeObjVar(self, path);
@@ -991,7 +1001,7 @@ public class planetary_mining_controller extends script.base_script
         capacityChanged(self, stationId);
     }
 
-    public void sendSamplingClaimResponse(obj_id self, obj_id player, obj_id tool, int sessionEpoch, int sessionSequence, int claimSequence, int requestSequence, int kind, int stationId, boolean allowed, String reason, dictionary request) throws InterruptedException
+    public void sendSamplingClaimResponse(obj_id self, obj_id player, obj_id tool, int sessionEpoch, int sessionSequence, int claimSequence, int requestSequence, int kind, long stationId, boolean allowed, String reason, dictionary request) throws InterruptedException
     {
         if (!isIdValid(player))
         {
@@ -1029,7 +1039,7 @@ public class planetary_mining_controller extends script.base_script
         int sessionEpoch = params == null ? 0 : params.getInt("sessionEpoch");
         int sessionSequence = params == null ? 0 : params.getInt("sessionSequence");
         int claimSequence = params == null ? 0 : params.getInt("claimSequence");
-        int stationId = getStationId(player);
+        long stationId = getStationId(player);
         if (stationId < 1 || sessionEpoch < 1 || sessionSequence < 1 || claimSequence < 1)
         {
             return SCRIPT_CONTINUE;
@@ -1064,12 +1074,12 @@ public class planetary_mining_controller extends script.base_script
         messageTo(player, "handlePlanetaryMiningSamplingReleaseAcknowledged", acknowledgement, 0.0f, false);
     }
 
-    public void closeSamplingClaim(obj_id self, int stationId, obj_id player, String path) throws InterruptedException
+    public void closeSamplingClaim(obj_id self, long stationId, obj_id player, String path) throws InterruptedException
     {
         closeSamplingClaim(self, stationId, player, path, true);
     }
 
-    public void closeSamplingClaim(obj_id self, int stationId, obj_id player, String path, boolean publish) throws InterruptedException
+    public void closeSamplingClaim(obj_id self, long stationId, obj_id player, String path, boolean publish) throws InterruptedException
     {
         if (getIntObjVar(self, path + ".state") != SAMPLING_CLAIM_ACTIVE)
         {
@@ -1083,7 +1093,7 @@ public class planetary_mining_controller extends script.base_script
         }
     }
 
-    public void commitSamplingFence(obj_id self, int stationId, obj_id player, int sessionEpoch, int sessionSequence, int claimSequence) throws InterruptedException
+    public void commitSamplingFence(obj_id self, long stationId, obj_id player, int sessionEpoch, int sessionSequence, int claimSequence) throws InterruptedException
     {
         if (stationId < 1 || !isIdValid(player) || sessionEpoch < 1 || sessionSequence < 1 || claimSequence < 1 || isIdentityAtOrBelowFence(self, stationId, player, sessionEpoch, sessionSequence, claimSequence))
         {
@@ -1121,12 +1131,12 @@ public class planetary_mining_controller extends script.base_script
         return player.equals(getObjIdObjVar(self, path + ".player")) && tool.equals(getObjIdObjVar(self, path + ".tool")) && sessionEpoch == getIntObjVar(self, path + ".sessionEpoch") && sessionSequence == getIntObjVar(self, path + ".sessionSequence") && claimSequence == getIntObjVar(self, path + ".claimSequence");
     }
 
-    public boolean isClaimAtOrBelowFence(obj_id self, int stationId, obj_id player, String path) throws InterruptedException
+    public boolean isClaimAtOrBelowFence(obj_id self, long stationId, obj_id player, String path) throws InterruptedException
     {
         return isIdentityAtOrBelowFence(self, stationId, player, getIntObjVar(self, path + ".sessionEpoch"), getIntObjVar(self, path + ".sessionSequence"), getIntObjVar(self, path + ".claimSequence"));
     }
 
-    public boolean isIdentityAtOrBelowFence(obj_id self, int stationId, obj_id player, int sessionEpoch, int sessionSequence, int claimSequence) throws InterruptedException
+    public boolean isIdentityAtOrBelowFence(obj_id self, long stationId, obj_id player, int sessionEpoch, int sessionSequence, int claimSequence) throws InterruptedException
     {
         String fence = getSamplingFencePath(stationId, player);
         return getIntObjVar(self, fence + ".state") == 1 && compareSamplingIdentity(sessionEpoch, sessionSequence, claimSequence, getIntObjVar(self, fence + ".sessionEpoch"), getIntObjVar(self, fence + ".sessionSequence"), getIntObjVar(self, fence + ".claimSequence")) <= 0;
@@ -1145,12 +1155,12 @@ public class planetary_mining_controller extends script.base_script
         return leftClaim == rightClaim ? 0 : leftClaim < rightClaim ? -1 : 1;
     }
 
-    public String getSamplingClaimPath(int stationId, obj_id player) throws InterruptedException
+    public String getSamplingClaimPath(long stationId, obj_id player) throws InterruptedException
     {
         return VAR_SAMPLING_CLAIMS + "." + stationId + "." + (isIdValid(player) ? Long.toString(player.getValue()) : "0");
     }
 
-    public String getSamplingFencePath(int stationId, obj_id player) throws InterruptedException
+    public String getSamplingFencePath(long stationId, obj_id player) throws InterruptedException
     {
         return VAR_SAMPLING_FENCE + "." + stationId + "." + (isIdValid(player) ? Long.toString(player.getValue()) : "0");
     }
