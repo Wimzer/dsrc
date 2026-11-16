@@ -1,0 +1,4 @@
+name	coordinatorSpawner	leaderSpawner	escort1Spawner	escort2Spawner	patrolRoute	assemblyRadius	rearDistance	lateralDistance
+s	s	s	s	s	s	f	f	f
+mos_eisley_outskirts	1095642	1095642	1095644	1095645	mos_eisley_perimeter	11	8.5	1.5
+mos_eisley_watch_test	bound	bound	bound	bound	mos_eisley_perimeter	11	8.5	1.5

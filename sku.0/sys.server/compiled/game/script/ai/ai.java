@@ -1361,7 +1361,8 @@ public class ai extends script.base_script
         {
             wontEnter = true;
         }
-        if (!permissionsIsAllowed(destContainer, self))
+        if (!permissionsIsAllowed(destContainer, self)
+                && !script.systems.npc_mount.mounted_sandtrooper.isPrototypeMountTransfer(self, destContainer, transferer))
         {
             wontEnter = true;
         }
@@ -1774,6 +1775,10 @@ public class ai extends script.base_script
         }
         obj_id myContainer = getContainedBy(self);
         if (!isIdValid(myContainer))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (script.systems.npc_mount.mounted_sandtrooper.isValidMountedContainment(self, myContainer))
         {
             return SCRIPT_CONTINUE;
         }

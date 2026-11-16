@@ -1,0 +1,4 @@
+name	riderSpawner	mountSpawner	controlDeviceTemplate	patrolRoute
+s	s	s	s	s
+mos_eisley_outskirts	1095642	1095643	object/intangible/pet/dewback_hue.iff	
+mos_eisley_watch_test	bound	bound	object/intangible/pet/dewback_hue.iff	

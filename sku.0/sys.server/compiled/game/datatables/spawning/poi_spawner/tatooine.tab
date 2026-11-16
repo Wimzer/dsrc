@@ -353,5 +353,9 @@ s	c	c	c	c	c	f	i	s	f	s	i[1]	i[1]
 1095635	3804.85	180	-4485.41	tatooine	0	120	3	parry_stormtrooper_dewback	3		0
 1095636	3866.18	180	-4528.88	tatooine	0	120	5	imperial_corporal	5		0
 1095637	3883.15	180	-4530	tatooine	0	120	3	imperial_sergeant	5		0
+1095642	3420	5	-5120	tatooine	0	180	1	gcw_city_mos_eisley_mounted_sergeant	0	systems.npc_mount.squad_member,systems.npc_mount.encounter_setup	1	0
+1095643	3422	5	-5120	tatooine	0	180	1	dewback	0	systems.npc_mount.encounter_setup	1	0
+1095644	3414	5	-5123	tatooine	0	180	1	gcw_city_mos_eisley_trooper	0	systems.npc_mount.squad_member	1	0
+1095645	3414	5	-5117	tatooine	0	180	1	gcw_city_mos_eisley_trooper	0	systems.npc_mount.squad_member	1	0
 10890330						30	5	tusken_raider_zealot	5		0
 6717738	-2894.8	7.6	2056.2	tatooine	1261651		1	tatooine_wald_customer		conversation.tatooine_wald_customer	1

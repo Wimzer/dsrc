@@ -127,6 +127,8 @@ special_missions_engineer	rand_low_officer	81	16
 stormtrooper_black_hole_squad_leader	rand_low_officer	81	29
 stormtrooper_bombardier	rand_low_officer	81	25
 stormtrooper_squad_leader	rand_low_officer	81	27
+gcw_city_mos_eisley_trooper	rand_noncom	80	90
+gcw_city_mos_eisley_mounted_sergeant	rand_low_officer	81	90
 stranded_imperial_pilot	rand_low_officer	81	20
 coa2_imperial_commander	rand_hi_officer	82	100
 imperial_moff	rand_hi_officer	82	28

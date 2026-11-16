@@ -2284,6 +2284,10 @@ i	i	h	i	f	f	f	f	f	f	f	s	p
 1095635	0	object/tangible/poi/spawnegg/exterior_spawnegg.iff	0	1756.85	180	1658.59	1	0	0	0		$|
 1095636	0	object/tangible/poi/spawnegg/exterior_spawnegg.iff	0	1818.18	180	1615.12	1	0	0	0		$|
 1095637	0	object/tangible/poi/spawnegg/exterior_spawnegg.iff	0	1835.15	180	1614	1	0	0	0		$|
+1095642	0	object/tangible/poi/spawnegg/exterior_spawnegg.iff	0	1372	5	1024	0.7071068	0	0.7071068	0	systems.npc_mount.squad_coordinator	$|
+1095643	0	object/tangible/poi/spawnegg/exterior_spawnegg.iff	0	1374	5	1024	0.7071068	0	0.7071068	0		$|
+1095644	0	object/tangible/poi/spawnegg/exterior_spawnegg.iff	0	1366	5	1021	0.7071068	0	0.7071068	0		$|
+1095645	0	object/tangible/poi/spawnegg/exterior_spawnegg.iff	0	1366	5	1027	0.7071068	0	0.7071068	0		$|
 -1	0	object/tangible/poi/spawnegg/jawa_spawnegg.iff	0	1422	5	1616	-0.700285	0	0.713864	0		pop|0|1|$|
 -2	0	object/path_waypoint/path_waypoint_jawa1.iff	0	1478	5	1643	1	0	0	0		$|
 -3	0	object/path_waypoint/path_waypoint_jawa2.iff	0	1441	5	1565	1	0	0	0		$|

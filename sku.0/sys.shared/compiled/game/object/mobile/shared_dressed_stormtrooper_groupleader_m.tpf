@@ -19,3 +19,4 @@ appearanceFilename = "appearance/hum_m.sat"
 clientDataFile = "clientdata/npc/client_shared_npc_dressed_stormtrooper_pauldron_orange_m.cdf"
 scale = 1.12..1.12
 
+arrangementDescriptorFilename = "abstract/slot/arrangement/npc_mount_rider.iff"

@@ -19,3 +19,4 @@ appearanceFilename = "appearance/bith_m.sat"
 
 clientDataFile = "clientdata/npc/client_shared_npc_dressed_desperado_bith_male_01.cdf"
 scale = 0.75..0.875
+arrangementDescriptorFilename = "abstract/slot/arrangement/npc_mount_rider.iff"
