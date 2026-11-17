@@ -177,6 +177,24 @@ object/tangible/component/armor/armor_segment_enhancement_voritor_lizard.iff	amo
 object/tangible/component/armor/armor_segment_enhancement_kimogila.iff	amount 	10	13
 object/tangible/component/armor/armor_segment_enhancement_rancor.iff	amount 	10	13
 object/tangible/component/armor/feather_peko_albatross.iff	amount 	6	8
+object/tangible/component/armor/armor_appearance_enhancement_feather_s01.iff	amount 	1	1
+	attribute.bonus.0	5	12
+object/tangible/component/armor/armor_appearance_enhancement_feather_s02.iff	amount 	1	1
+	attribute.bonus.0	8	15
+object/tangible/component/armor/armor_appearance_enhancement_feather_s03.iff	amount 	1	1
+	attribute.bonus.0	11	19
+object/tangible/component/armor/armor_appearance_enhancement_feather_s04.iff	amount 	1	1
+	attribute.bonus.0	15	24
+object/tangible/component/armor/armor_appearance_enhancement_feather_s05.iff	amount 	1	1
+	attribute.bonus.0	18	28
+object/tangible/component/armor/armor_appearance_enhancement_feather_s06.iff	amount 	1	1
+	attribute.bonus.0	22	32
+object/tangible/component/armor/armor_appearance_enhancement_feather_s07.iff	amount 	1	1
+	attribute.bonus.0	26	39
+object/tangible/component/armor/armor_appearance_enhancement_feather_s08.iff	amount 	1	1
+	attribute.bonus.0	32	45
+object/tangible/component/armor/armor_appearance_enhancement_feather_s09.iff	amount 	1	1
+	attribute.bonus.0	45	50
 object/tangible/component/armor/armor_appearance_enhancement_acklay.iff	amount 	1	2
 object/tangible/component/weapon/new_weapon/enhancement_melee_slot_one_s01.iff	amount 	1	1
 	attribute.bonus.0	86	108

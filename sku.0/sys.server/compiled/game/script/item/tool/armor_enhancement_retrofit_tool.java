@@ -1,0 +1,510 @@
+package script.item.tool;
+
+import script.*;
+import script.library.armor;
+import script.library.armor_enhancement;
+import script.library.sui;
+import script.library.utils;
+
+import java.util.Vector;
+
+public class armor_enhancement_retrofit_tool extends script.base_script
+{
+    public static final String SESSION_ROOT = "armor_enhancement_retrofit_session";
+    public static final String SESSION_PLAYER = SESSION_ROOT + ".player";
+    public static final String SESSION_TARGETS = SESSION_ROOT + ".targets";
+    public static final String SESSION_TARGET = SESSION_ROOT + ".target";
+    public static final String SESSION_PID = SESSION_ROOT + ".pid";
+
+    public static final String OPERATION_ROOT = "armor_enhancement_retrofit_operation";
+    public static final String OPERATION_ID = OPERATION_ROOT + ".id";
+    public static final String OPERATION_PLAYER = OPERATION_ROOT + ".player";
+    public static final String OPERATION_TARGET = OPERATION_ROOT + ".target";
+    public static final String OPERATION_FEATHER = OPERATION_ROOT + ".feather";
+    public static final String OPERATION_CARTRIDGE = OPERATION_ROOT + ".cartridge";
+    public static final String OPERATION_FEATHER_COUNT = OPERATION_ROOT + ".feather_count";
+    public static final String OPERATION_CARTRIDGE_COUNT = OPERATION_ROOT + ".cartridge_count";
+    public static final String OPERATION_HEALTH = OPERATION_ROOT + ".health";
+    public static final String OPERATION_SKILL_MOD = OPERATION_ROOT + ".skill_mod";
+    public static final String OPERATION_SKILL_VALUE = OPERATION_ROOT + ".skill_value";
+    public static final String OPERATION_TARGET_APPLIED = OPERATION_ROOT + ".target_applied";
+    public static final String OPERATION_FEATHER_CONSUMED = OPERATION_ROOT + ".feather_consumed";
+    public static final String OPERATION_CARTRIDGE_CONSUMED = OPERATION_ROOT + ".cartridge_consumed";
+
+    public static final String TITLE = "Armor Enhancement Retrofit";
+    public static final String LOG_CATEGORY = "armor_enhancement";
+
+    public int OnInitialize(obj_id self) throws InterruptedException
+    {
+        if (hasObjVar(self, OPERATION_ROOT) && !hasObjVar(self, OPERATION_ID))
+        {
+            removeObjVar(self, OPERATION_ROOT);
+        }
+        if (hasObjVar(self, OPERATION_ID))
+        {
+            messageTo(self, "recoverRetrofitOperation", null, 1.0f, false);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int OnAboutToReceiveItem(obj_id self, obj_id srcContainer, obj_id transferer, obj_id item) throws InterruptedException
+    {
+        if (!isInMainInventory(self, transferer) || hasObjVar(self, OPERATION_ROOT) || !isIdValid(item) || !exists(item))
+        {
+            sendMessage(transferer, "The retrofit tool must be in your inventory and idle before components can be loaded.");
+            return SCRIPT_OVERRIDE;
+        }
+        obj_id[] contents = getContents(self);
+        if (contents == null || contents.length >= 2)
+        {
+            sendMessage(transferer, "The retrofit tool can hold exactly one feather attachment and one Biological Mechanics Cartridge.");
+            return SCRIPT_OVERRIDE;
+        }
+        boolean incomingFeather = armor_enhancement.getFinishedFeatherHealth(item) >= 0;
+        boolean incomingCartridge = armor_enhancement.getFinishedCartridgeSkillModIndex(item) >= 0;
+        if (incomingFeather == incomingCartridge)
+        {
+            sendMessage(transferer, "Only a finished feather attachment or finished Biological Mechanics Cartridge can be loaded.");
+            return SCRIPT_OVERRIDE;
+        }
+        for (obj_id content : contents)
+        {
+            if (incomingFeather && armor_enhancement.getFinishedFeatherHealth(content) >= 0 || incomingCartridge && armor_enhancement.getFinishedCartridgeSkillModIndex(content) >= 0)
+            {
+                sendMessage(transferer, "The retrofit tool already contains that component type.");
+                return SCRIPT_OVERRIDE;
+            }
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int OnAboutToLoseItem(obj_id self, obj_id destContainer, obj_id transferer, obj_id item) throws InterruptedException
+    {
+        if (hasObjVar(self, OPERATION_ROOT))
+        {
+            sendMessage(transferer, "Components cannot be removed while a retrofit operation is being recovered.");
+            return SCRIPT_OVERRIDE;
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
+    {
+        if (isInMainInventory(self, player))
+        {
+            mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("ui_radial", "item_use"));
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
+    {
+        if (item != menu_info_types.ITEM_USE || !isInMainInventory(self, player))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (hasObjVar(self, OPERATION_ID))
+        {
+            if (!recoverOperation(self, player, true))
+            {
+                sendMessage(player, "This tool has an interrupted retrofit operation that could not yet be recovered. Keep its components loaded and unequip the target, then try again.");
+            }
+            return SCRIPT_CONTINUE;
+        }
+        if (!validateLoadedComponents(self))
+        {
+            sendMessage(player, "Load exactly one valid finished feather attachment and one valid finished Biological Mechanics Cartridge.");
+            return SCRIPT_CONTINUE;
+        }
+        beginTargetSelection(self, player);
+        return SCRIPT_CONTINUE;
+    }
+
+    public void beginTargetSelection(obj_id self, obj_id player) throws InterruptedException
+    {
+        cleanupSession(self, player);
+        obj_id inventory = utils.getInventoryContainer(player);
+        obj_id[] inventoryContents = utils.getContents(inventory, true);
+        Vector targets = new Vector();
+        Vector targetNames = new Vector();
+        for (obj_id target : inventoryContents)
+        {
+            if (armor_enhancement.isEligibleRetrofitTarget(target) && !utils.isEquipped(target) && !armor_enhancement.hasRetrofitOperation(target))
+            {
+                targets.addElement(target);
+                targetNames.addElement(getEncodedName(target));
+            }
+        }
+        if (targets.isEmpty())
+        {
+            sendMessage(player, "No eligible unequipped armor or core-bearing cybernetic target was found in your inventory.");
+            return;
+        }
+        utils.setScriptVar(self, SESSION_PLAYER, player);
+        utils.setScriptVar(self, SESSION_TARGETS, targets);
+        int pid = sui.listbox(self, player, "Select the armor or core-bearing cybernetic item to enhance.", sui.OK_CANCEL, TITLE, targetNames, "handleTargetSelection", true, false);
+        if (pid < 0)
+        {
+            cleanupSession(self, player);
+            return;
+        }
+        sui.setPid(player, pid, SESSION_PID);
+    }
+
+    public int handleTargetSelection(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = getValidSessionPlayer(self, params);
+        if (!isIdValid(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (sui.getIntButtonPressed(params) == sui.BP_CANCEL)
+        {
+            cleanupSession(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        int index = sui.getListboxSelectedRow(params);
+        obj_id[] targets = utils.getObjIdArrayScriptVar(self, SESSION_TARGETS);
+        if (index < 0 || targets == null || index >= targets.length)
+        {
+            cleanupSession(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        obj_id target = targets[index];
+        if (!validateCommitObjects(self, player, target))
+        {
+            cleanupSession(self, player);
+            sendMessage(player, "The selected target or loaded components are no longer valid.");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id feather = getLoadedFeather(self);
+        obj_id cartridge = getLoadedCartridge(self);
+        int health = armor_enhancement.getFinishedFeatherHealth(feather);
+        int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
+        int skillValue = armor_enhancement.getFinishedCartridgeSkillValue(cartridge);
+        String skillName = localize(new string_id("stat_n", armor_enhancement.SKILL_MODS[skillModIndex]));
+        String prompt = "Apply +" + health + " Health and +" + skillValue + " " + skillName + " to " + getEncodedName(target) + "? Existing bonuses from this enhancement system will be replaced. Both loaded components will be consumed.";
+
+        sui.removePid(player, SESSION_PID);
+        utils.setScriptVar(self, SESSION_TARGET, target);
+        int pid = sui.msgbox(self, player, prompt, sui.YES_NO, TITLE, "handleRetrofitConfirmation");
+        if (pid < 0)
+        {
+            cleanupSession(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        sui.setPid(player, pid, SESSION_PID);
+        return SCRIPT_CONTINUE;
+    }
+
+    public int handleRetrofitConfirmation(obj_id self, dictionary params) throws InterruptedException
+    {
+        obj_id player = getValidSessionPlayer(self, params);
+        if (!isIdValid(player))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        if (sui.getIntButtonPressed(params) != sui.BP_OK)
+        {
+            cleanupSession(self, player);
+            return SCRIPT_CONTINUE;
+        }
+        obj_id target = utils.getObjIdScriptVar(self, SESSION_TARGET);
+        if (!validateCommitObjects(self, player, target))
+        {
+            cleanupSession(self, player);
+            sendMessage(player, "The retrofit was cancelled because the target or components changed.");
+            return SCRIPT_CONTINUE;
+        }
+
+        obj_id feather = getLoadedFeather(self);
+        obj_id cartridge = getLoadedCartridge(self);
+        int health = armor_enhancement.getFinishedFeatherHealth(feather);
+        int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
+        int skillValue = armor_enhancement.getFinishedCartridgeSkillValue(cartridge);
+        String operationId = player + ":" + target + ":" + getGameTime() + ":" + rand(1, 2147483647);
+
+        cleanupSession(self, player);
+        setObjVar(self, OPERATION_PLAYER, player);
+        setObjVar(self, OPERATION_TARGET, target);
+        setObjVar(self, OPERATION_FEATHER, feather);
+        setObjVar(self, OPERATION_CARTRIDGE, cartridge);
+        setObjVar(self, OPERATION_FEATHER_COUNT, getCount(feather));
+        setObjVar(self, OPERATION_CARTRIDGE_COUNT, getCount(cartridge));
+        setObjVar(self, OPERATION_HEALTH, health);
+        setObjVar(self, OPERATION_SKILL_MOD, armor_enhancement.SKILL_MODS[skillModIndex]);
+        setObjVar(self, OPERATION_SKILL_VALUE, skillValue);
+        setObjVar(self, OPERATION_TARGET_APPLIED, 0);
+        setObjVar(self, OPERATION_FEATHER_CONSUMED, 0);
+        setObjVar(self, OPERATION_CARTRIDGE_CONSUMED, 0);
+        setObjVar(self, OPERATION_ID, operationId);
+
+        if (!recoverOperation(self, player, true))
+        {
+            sendMessage(player, "The retrofit operation was interrupted. The tool retained recovery data; keep the components loaded and try using it again.");
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public int recoverRetrofitOperation(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (hasObjVar(self, OPERATION_ID) && hasObjVar(self, OPERATION_PLAYER))
+        {
+            recoverOperation(self, getObjIdObjVar(self, OPERATION_PLAYER), false);
+        }
+        return SCRIPT_CONTINUE;
+    }
+
+    public boolean recoverOperation(obj_id self, obj_id player, boolean notifyPlayer) throws InterruptedException
+    {
+        if (!validateOperationRecord(self))
+        {
+            CustomerServiceLog(LOG_CATEGORY, "Invalid retrofit recovery record on tool " + self + ".");
+            return false;
+        }
+        String operationId = getStringObjVar(self, OPERATION_ID);
+        obj_id recordedPlayer = getObjIdObjVar(self, OPERATION_PLAYER);
+        obj_id target = getObjIdObjVar(self, OPERATION_TARGET);
+        obj_id feather = getObjIdObjVar(self, OPERATION_FEATHER);
+        obj_id cartridge = getObjIdObjVar(self, OPERATION_CARTRIDGE);
+        int health = getIntObjVar(self, OPERATION_HEALTH);
+        int skillModIndex = armor_enhancement.getSkillModIndex(getStringObjVar(self, OPERATION_SKILL_MOD));
+        int skillValue = getIntObjVar(self, OPERATION_SKILL_VALUE);
+        if (!isIdValid(recordedPlayer) || !recordedPlayer.equals(player) || !isInMainInventory(self, recordedPlayer) || !isInMainInventory(target, recordedPlayer) || utils.isEquipped(target) || !armor_enhancement.isEligibleRetrofitTarget(target))
+        {
+            return false;
+        }
+        boolean targetApplied = getIntObjVar(self, OPERATION_TARGET_APPLIED) == 1 || armor_enhancement.isRetrofitOperationApplied(target, operationId);
+        int featherState = getConsumptionState(self, feather, OPERATION_FEATHER_COUNT, OPERATION_FEATHER_CONSUMED, targetApplied);
+        int cartridgeState = getConsumptionState(self, cartridge, OPERATION_CARTRIDGE_COUNT, OPERATION_CARTRIDGE_CONSUMED, targetApplied);
+        if (featherState < 0 || cartridgeState < 0 || skillModIndex < 0 || health < 0 || health > armor_enhancement.MAX_HEALTH || !armor_enhancement.isValidSkillMod(armor_enhancement.SKILL_MODS[skillModIndex], skillValue))
+        {
+            CustomerServiceLog(LOG_CATEGORY, "Retrofit operation " + operationId + " has invalid recovery state on tool " + self + ".");
+            return false;
+        }
+        if (!isIdValid(target) || !exists(target))
+        {
+            CustomerServiceLog(LOG_CATEGORY, "Retrofit operation " + operationId + " cannot find target " + target + ".");
+            return false;
+        }
+
+        if (!armor_enhancement.hasMatchingRetrofitOperation(target, operationId))
+        {
+            if (armor_enhancement.hasRetrofitOperation(target))
+            {
+                CustomerServiceLog(LOG_CATEGORY, "Retrofit operation " + operationId + " found a different operation on target " + target + ".");
+                return false;
+            }
+            if (featherState == 1 && cartridgeState == 1 && armor_enhancement.matchesAppliedPayload(target, health, skillModIndex, skillValue))
+            {
+                removeObjVar(self, OPERATION_ROOT);
+                return true;
+            }
+            if (utils.isEquipped(target) || !isInMainInventory(target, player) || featherState != 0 || cartridgeState != 0 || !validateOperationComponents(self, feather, cartridge, health, skillModIndex, skillValue))
+            {
+                return false;
+            }
+            if (!armor_enhancement.prepareRetrofitTarget(target, operationId, health, skillModIndex, skillValue))
+            {
+                return false;
+            }
+        }
+        if (utils.isEquipped(target) || !armor_enhancement.applyPreparedRetrofit(target, operationId))
+        {
+            return false;
+        }
+        setObjVar(self, OPERATION_TARGET_APPLIED, 1);
+        if (!consumeOperationComponent(self, feather, OPERATION_FEATHER_COUNT, OPERATION_FEATHER_CONSUMED) || !consumeOperationComponent(self, cartridge, OPERATION_CARTRIDGE_COUNT, OPERATION_CARTRIDGE_CONSUMED))
+        {
+            return false;
+        }
+        if (!armor_enhancement.finishRetrofitTarget(target, operationId))
+        {
+            return false;
+        }
+        removeObjVar(self, OPERATION_ROOT);
+        CustomerServiceLog(LOG_CATEGORY, "Completed retrofit operation " + operationId + " for player " + player + " on target " + target + ".");
+        if (notifyPlayer && isIdValid(player) && exists(player))
+        {
+            sendMessage(player, "The armor enhancement retrofit completed successfully. The tool remains reusable.");
+        }
+        return true;
+    }
+
+    public boolean validateCommitObjects(obj_id self, obj_id player, obj_id target) throws InterruptedException
+    {
+        return isInMainInventory(self, player) && isInMainInventory(target, player) && !utils.isEquipped(target) && armor_enhancement.isEligibleRetrofitTarget(target) && !armor_enhancement.hasRetrofitOperation(target) && validateLoadedComponents(self);
+    }
+
+    public boolean validateLoadedComponents(obj_id self) throws InterruptedException
+    {
+        obj_id[] contents = getContents(self);
+        if (contents == null || contents.length != 2)
+        {
+            return false;
+        }
+        obj_id feather = getLoadedFeather(self);
+        obj_id cartridge = getLoadedCartridge(self);
+        if (!isIdValid(feather) || !isIdValid(cartridge) || feather.equals(cartridge) || getContainedBy(feather) != self || getContainedBy(cartridge) != self || getCount(feather) < 1 || getCount(cartridge) < 1)
+        {
+            return false;
+        }
+        int health = armor_enhancement.getFinishedFeatherHealth(feather);
+        int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
+        int skillValue = armor_enhancement.getFinishedCartridgeSkillValue(cartridge);
+        return health >= 0 && skillModIndex >= 0 && armor_enhancement.isValidSkillMod(armor_enhancement.SKILL_MODS[skillModIndex], skillValue);
+    }
+
+    public obj_id getLoadedFeather(obj_id self) throws InterruptedException
+    {
+        obj_id[] contents = getContents(self);
+        for (obj_id content : contents)
+        {
+            if (isIdValid(content) && exists(content) && armor_enhancement.getFinishedFeatherHealth(content) >= 0)
+            {
+                return content;
+            }
+        }
+        return obj_id.NULL_ID;
+    }
+
+    public obj_id getLoadedCartridge(obj_id self) throws InterruptedException
+    {
+        obj_id[] contents = getContents(self);
+        for (obj_id content : contents)
+        {
+            if (isIdValid(content) && exists(content) && armor_enhancement.getFinishedCartridgeSkillModIndex(content) >= 0)
+            {
+                return content;
+            }
+        }
+        return obj_id.NULL_ID;
+    }
+
+    public obj_id getValidSessionPlayer(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || params.isEmpty() || !utils.hasScriptVar(self, SESSION_PLAYER))
+        {
+            return obj_id.NULL_ID;
+        }
+        obj_id player = sui.getPlayerId(params);
+        obj_id sessionPlayer = utils.getObjIdScriptVar(self, SESSION_PLAYER);
+        if (!isIdValid(player) || !exists(player) || !player.equals(sessionPlayer) || !sui.hasPid(player, SESSION_PID))
+        {
+            return obj_id.NULL_ID;
+        }
+        int pageId = params.getInt("pageId");
+        int pid = sui.getPid(player, SESSION_PID);
+        if (pageId != pid)
+        {
+            if (pageId > -1)
+            {
+                forceCloseSUIPage(pageId);
+            }
+            return obj_id.NULL_ID;
+        }
+        if (!isInMainInventory(self, player))
+        {
+            cleanupSession(self, player);
+            return obj_id.NULL_ID;
+        }
+        return player;
+    }
+
+    public void cleanupSession(obj_id self, obj_id player) throws InterruptedException
+    {
+        if (isIdValid(player) && sui.hasPid(player, SESSION_PID))
+        {
+            int pid = sui.getPid(player, SESSION_PID);
+            if (pid > -1)
+            {
+                forceCloseSUIPage(pid);
+            }
+            sui.removePid(player, SESSION_PID);
+        }
+        utils.removeScriptVarTree(self, SESSION_ROOT);
+    }
+
+    public boolean validateOperationRecord(obj_id self) throws InterruptedException
+    {
+        return hasObjVar(self, OPERATION_ID) && hasObjVar(self, OPERATION_PLAYER) && hasObjVar(self, OPERATION_TARGET) &&
+            hasObjVar(self, OPERATION_FEATHER) && hasObjVar(self, OPERATION_CARTRIDGE) && hasObjVar(self, OPERATION_FEATHER_COUNT) &&
+            hasObjVar(self, OPERATION_CARTRIDGE_COUNT) && hasObjVar(self, OPERATION_HEALTH) && hasObjVar(self, OPERATION_SKILL_MOD) &&
+            hasObjVar(self, OPERATION_SKILL_VALUE) && hasObjVar(self, OPERATION_TARGET_APPLIED) && hasObjVar(self, OPERATION_FEATHER_CONSUMED) && hasObjVar(self, OPERATION_CARTRIDGE_CONSUMED);
+    }
+
+    public boolean validateOperationComponents(obj_id self, obj_id feather, obj_id cartridge, int health, int skillModIndex, int skillValue) throws InterruptedException
+    {
+        return isIdValid(feather) && exists(feather) && getContainedBy(feather) == self && getCount(feather) == getIntObjVar(self, OPERATION_FEATHER_COUNT) &&
+            armor_enhancement.getFinishedFeatherHealth(feather) == health && isIdValid(cartridge) && exists(cartridge) && getContainedBy(cartridge) == self &&
+            getCount(cartridge) == getIntObjVar(self, OPERATION_CARTRIDGE_COUNT) && armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge) == skillModIndex &&
+            armor_enhancement.getFinishedCartridgeSkillValue(cartridge) == skillValue;
+    }
+
+    public int getConsumptionState(obj_id self, obj_id component, String countObjVar, String consumedObjVar, boolean targetApplied) throws InterruptedException
+    {
+        if (getIntObjVar(self, consumedObjVar) == 1)
+        {
+            return 1;
+        }
+        int initialCount = getIntObjVar(self, countObjVar);
+        if (initialCount < 1)
+        {
+            return -1;
+        }
+        if (!isIdValid(component) || !exists(component))
+        {
+            if (!targetApplied)
+            {
+                return -1;
+            }
+            setObjVar(self, consumedObjVar, 1);
+            return 1;
+        }
+        int currentCount = getCount(component);
+        if (currentCount == initialCount)
+        {
+            return 0;
+        }
+        if (currentCount == initialCount - 1)
+        {
+            setObjVar(self, consumedObjVar, 1);
+            return 1;
+        }
+        return -1;
+    }
+
+    public boolean consumeOperationComponent(obj_id self, obj_id component, String countObjVar, String consumedObjVar) throws InterruptedException
+    {
+        int state = getConsumptionState(self, component, countObjVar, consumedObjVar, true);
+        if (state == 1)
+        {
+            return true;
+        }
+        if (state != 0 || getContainedBy(component) != self || !decrementCount(component))
+        {
+            return false;
+        }
+        setObjVar(self, consumedObjVar, 1);
+        return true;
+    }
+
+    public boolean isInMainInventory(obj_id object, obj_id player) throws InterruptedException
+    {
+        if (!isIdValid(object) || !exists(object) || !isIdValid(player) || !exists(player))
+        {
+            return false;
+        }
+        obj_id inventory = utils.getInventoryContainer(player);
+        return isIdValid(inventory) && utils.isNestedWithin(object, inventory);
+    }
+
+    public void sendMessage(obj_id player, String message) throws InterruptedException
+    {
+        if (isIdValid(player) && exists(player))
+        {
+            sendSystemMessage(player, message, null);
+        }
+    }
+}

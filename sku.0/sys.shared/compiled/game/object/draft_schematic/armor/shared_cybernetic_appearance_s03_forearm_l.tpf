@@ -24,7 +24,9 @@ slots = [
 	[name = "craft_furniture_ingredients_n" "integrated_circuit", hardpoint = ""],
 	[name = "craft_item_ingredients_n" "micro_sensor_suite", hardpoint = ""],
 	[name = "craft_armor_ingredients_n" "armor_core", hardpoint = ""],
-	[name = "craft_weapon_ingredients_n" "cybernetic_enhancement_core", hardpoint = ""]]
+	[name = "craft_weapon_ingredients_n" "cybernetic_enhancement_core", hardpoint = ""],
+	[name = "craft_armor_ingredients_n" "enhancement_cartridge", hardpoint = ""],
+	[name = "craft_armor_ingredients_n" "appearance_enhancement_one", hardpoint = ""]]
 
 craftedSharedTemplate="object/tangible/wearables/cybernetic/shared_cybernetic_crafted_s03_forearm_l.iff"
 

@@ -1,0 +1,10 @@
+@base object/tangible/component/base/base_component.iff
+
+@class tangible_object_template 1
+
+@class object_template 5
+
+sharedTemplate = "object/tangible/component/armor/shared_bio_mechanics_terrain_negotiation.iff"
+complexity = 1
+scripts = +["item.component.serialize","item.component.component_attribs"]
+moveFlags = [ MF_player ]

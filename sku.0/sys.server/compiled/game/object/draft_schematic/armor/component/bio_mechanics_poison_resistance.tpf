@@ -1,0 +1,30 @@
+@base object/draft_schematic/base/base_draft_schematic.iff
+@class draft_schematic_object_template 7
+
+category = CT_armor
+itemsPerContainer = 100
+craftedObjectTemplate = "object/tangible/component/armor/bio_mechanics_poison_resistance.iff"
+slots = [
+	[
+	optional=false,
+	name = "craft_armor_ingredients_n" "bio_mechanics_lok_meat",
+	options = [[ingredientType=IT_resourceClass, ingredients = [[name="craft_armor_ingredients_n" "bio_mechanics_lok_meat", ingredient="meat_avian_lok", count=30]], complexity=0, skillCommand="unskilled"]],
+	optionalSkillCommand = "", complexity = 0, appearance = "" ],
+	[
+	optional=false,
+	name = "craft_armor_ingredients_n" "bio_mechanics_talus_hide",
+	options = [[ingredientType=IT_resourceClass, ingredients = [[name="craft_armor_ingredients_n" "bio_mechanics_talus_hide", ingredient="hide_leathery_talus", count=15]], complexity=0, skillCommand="unskilled"]],
+	optionalSkillCommand = "", complexity = 0, appearance = "" ],
+	[
+	optional=false,
+	name = "craft_armor_ingredients_n" "bio_mechanics_corellia_bone",
+	options = [[ingredientType=IT_resourceClass, ingredients = [[name="craft_armor_ingredients_n" "bio_mechanics_corellia_bone", ingredient="bone_mammal_corellia", count=20]], complexity=0, skillCommand="unskilled"]],
+	optionalSkillCommand = "", complexity = 0, appearance = "" ]]
+skillCommands = ["unskilled"]
+manufactureScripts = ["systems.crafting.armor.crafting_bio_mechanics_domestic_component"]
+@class intangible_object_template 1
+@class object_template 8
+complexity = 15
+volume = 1
+sharedTemplate = "object/draft_schematic/armor/component/shared_bio_mechanics_poison_resistance.iff"
+xpPoints = [[type=XP_craftingClothing, level=0, value=0]]

@@ -3,7 +3,9 @@ package script.systems.crafting.armor;
 import script.dictionary;
 import script.draft_schematic;
 import script.library.armor;
+import script.library.armor_enhancement;
 import script.library.craftinglib;
+import script.modifiable_int;
 import script.obj_id;
 import script.obj_var_list;
 
@@ -13,6 +15,48 @@ public class crafting_new_armor_final extends script.systems.crafting.crafting_b
     {
     }
     public static final String VERSION = "v0.00.00";
+    public int OnManufacturingSchematicCreation(obj_id self, obj_id player, obj_id prototype, draft_schematic schematic, modifiable_int assemblyResult, modifiable_int experimentPoints) throws InterruptedException
+    {
+        if (!armor_enhancement.validateCraftingPayload(self))
+        {
+            assemblyResult.set(9);
+            endCraftingSession(player, obj_id.NULL_ID, prototype);
+            CustomerServiceLog("crafting", "WARNING: rejected stale armor enhancement payload on schematic " + self);
+            return SCRIPT_CONTINUE;
+        }
+        if (!armor_enhancement.validateEnhancementIngredients(schematic))
+        {
+            assemblyResult.set(9);
+            endCraftingSession(player, obj_id.NULL_ID, prototype);
+            CustomerServiceLog("crafting", "WARNING: rejected invalid armor enhancement ingredients on schematic " + self);
+            return SCRIPT_CONTINUE;
+        }
+        armor_enhancement.resetSchematicEnhancements(self);
+        if (!armor_enhancement.prepareFeatherIngredientPayload(self, schematic))
+        {
+            assemblyResult.set(9);
+            endCraftingSession(player, obj_id.NULL_ID, prototype);
+            CustomerServiceLog("crafting", "WARNING: failed to capture direct feather payload on schematic " + self);
+            return SCRIPT_CONTINUE;
+        }
+        if (!armor_enhancement.prepareFinishedCartridgeIngredientPayload(self, schematic))
+        {
+            assemblyResult.set(9);
+            endCraftingSession(player, obj_id.NULL_ID, prototype);
+            CustomerServiceLog("crafting", "WARNING: failed to capture Biological Mechanics Cartridge payload on schematic " + self);
+            return SCRIPT_CONTINUE;
+        }
+        return super.OnManufacturingSchematicCreation(self, player, prototype, schematic, assemblyResult, experimentPoints);
+    }
+    public int OnManufactureObject(obj_id self, obj_id player, obj_id newObject, draft_schematic schematic, boolean isPrototype, boolean isRealObject) throws InterruptedException
+    {
+        if (!armor_enhancement.validateCraftingPayload(self))
+        {
+            CustomerServiceLog("crafting", "WARNING: rejected invalid armor enhancement payload on schematic " + self);
+            return SCRIPT_OVERRIDE;
+        }
+        return super.OnManufactureObject(self, player, newObject, schematic, isPrototype, isRealObject);
+    }
     public void calcAndSetPrototypeProperties(obj_id prototype, draft_schematic.attribute[] itemAttributes, dictionary craftingValuesDictionary) throws InterruptedException
     {
         if (!hasObjVar(getSelf(), craftinglib.COMPONENT_ATTRIBUTE_INTERNAL_OBJVAR_NAME + "." + armor.OBJVAR_ARMOR_LEVEL))
@@ -43,9 +87,17 @@ public class crafting_new_armor_final extends script.systems.crafting.crafting_b
         }
         armor.updateItemAttributes(getSelf(), itemAttributes, finalRow);
         super.calcAndSetPrototypeProperties(prototype, itemAttributes, craftingValuesDictionary);
+        if (!armor_enhancement.captureCraftedEnhancements(getSelf(), prototype))
+        {
+            CustomerServiceLog("crafting", "WARNING: failed to capture armor enhancement payload for schematic " + getSelf() + " to prototype " + prototype);
+        }
     }
     public void calcAndSetPrototypeProperties(obj_id prototype, draft_schematic.attribute[] itemAttributes) throws InterruptedException
     {
+        if (!armor_enhancement.applySchematicEnhancements(getSelf(), prototype))
+        {
+            CustomerServiceLog("crafting", "WARNING: failed to apply stored armor enhancement payload for schematic " + getSelf() + " to prototype " + prototype);
+        }
         debugServerConsoleMsg(null, "Beginning assembly-phase prototype property setting");
         if (!hasObjVar(getSelf(), armor.OBJVAR_ARMOR_LEVEL))
         {

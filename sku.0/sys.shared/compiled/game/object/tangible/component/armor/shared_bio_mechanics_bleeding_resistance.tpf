@@ -1,0 +1,10 @@
+@base object/tangible/component/base/shared_base_component.iff
+
+@class tangible_object_template 7
+
+@class object_template 8
+
+objectName = "craft_armor_ingredients_n" "bio_mechanics_bleeding_resistance"
+detailedDescription = "craft_armor_ingredients_d" "bio_mechanics_bleeding_resistance"
+appearanceFilename = "appearance/eqp_circuit_board_s02.apt"
+gameObjectType = GOT_component_new_armor

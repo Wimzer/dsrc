@@ -39,7 +39,7 @@ slots = [
 	complexity = 0,
 	appearance = "" ]]
 skillCommands = ["unskilled"]
-manufactureScripts = [ "systems.crafting.armor.crafting_armor_nostats" ]
+manufactureScripts = [ "systems.crafting.armor.crafting_armor_enhancement_feather" ]
 
 
 @class intangible_object_template 0

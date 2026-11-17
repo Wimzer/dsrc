@@ -1182,8 +1182,14 @@ public class terminal_character_builder extends script.base_script
         "Personal Shield Generators",
         "Combat Enhancement Items",
         "PvP Sets",
-        "Heroic Jewelry"
+        "Heroic Jewelry",
+        "Armor Enhancement Components"
     };
+    public static final String[] ARMOR_COMPONENT_OPTIONS = {
+        "Random Enhancement Pair (1 feather + 1 cartridge)",
+        "Capped Enhancement Set (5 feathers + all 5 cartridge types)"
+    };
+    public static final String ARMOR_COMPONENT_TERMINAL = "character_builder.armorComponentTerminal";
     public static final String[] ARMOR_ASSAULT_OPTIONS = {
         "Composite Armor Set",
         "Marauder Assault Armor Set",
@@ -7221,12 +7227,118 @@ public class terminal_character_builder extends script.base_script
             case 6:
             refreshMenu(player, prompt, title, HEROIC_JEWELRY_LIST, "handleHeroicJewelrySelect", false);
             break;
+            case 7:
+            showArmorComponentOptions(player);
+            break;
             default:
             cleanScriptVars(player);
             return SCRIPT_CONTINUE;
         }
         return SCRIPT_CONTINUE;
     }
+    public void showArmorComponentOptions(obj_id player) throws InterruptedException
+    {
+        refreshMenu(player, "Random pairs sample all nine feather tiers and five cartridge types equally. " +
+            "Capped sets contain five +50 Health feathers, four +3 resistance cartridges and one +25 Terrain Negotiation cartridge. " +
+            "These are finished components for crafting or retrofit; no armor is issued.",
+            "Armor Enhancement Components", ARMOR_COMPONENT_OPTIONS, "handleArmorComponentSelect", false);
+        utils.setScriptVar(player, ARMOR_COMPONENT_TERMINAL, getSelf());
+    }
+
+    public int handleArmorComponentSelect(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || params.isEmpty())
+        {
+            return SCRIPT_CONTINUE;
+        }
+        obj_id player = sui.getPlayerId(params);
+        if (!isIdValid(player) || !exists(player) ||
+            !self.equals(utils.getObjIdScriptVar(player, ARMOR_COMPONENT_TERMINAL)) ||
+            !utils.hasScriptVar(player, "character_builder.pid") ||
+            params.getInt("pageId") != utils.getIntScriptVar(player, "character_builder.pid"))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        closeOldWindow(player);
+        utils.removeScriptVar(player, ARMOR_COMPONENT_TERMINAL);
+        if (!(isGod(player) || (checkConfigSetting("builderEnabled") && checkConfigSetting("armorEnabled"))))
+        {
+            sendSystemMessageTestingOnly(player, "Armor component testing is not enabled.");
+            cleanScriptVars(player);
+            return SCRIPT_CONTINUE;
+        }
+        int button = sui.getIntButtonPressed(params);
+        if (button == sui.BP_CANCEL)
+        {
+            cleanScriptVars(player);
+            return SCRIPT_CONTINUE;
+        }
+        if (button == sui.BP_REVERT)
+        {
+            refreshMenu(player, "Select the desired armor option", "Test Center Terminal", ARMOR_OPTIONS, "handleArmorSelect", false);
+            return SCRIPT_CONTINUE;
+        }
+        int index = sui.getListboxSelectedRow(params);
+        if (button != sui.BP_OK || index < 0 || index >= ARMOR_COMPONENT_OPTIONS.length)
+        {
+            cleanScriptVars(player);
+            return SCRIPT_CONTINUE;
+        }
+        giveArmorTestComponents(player, index == 1);
+        showArmorComponentOptions(player);
+        return SCRIPT_CONTINUE;
+    }
+
+    public void giveArmorTestComponents(obj_id player, boolean capped) throws InterruptedException
+    {
+        obj_id inventory = utils.getInventoryContainer(player);
+        int pairs = capped ? armor_enhancement.SKILL_MODS.length : 1;
+        if (!isIdValid(inventory) || !exists(inventory) || getVolumeFree(inventory) < pairs * 2)
+        {
+            sendSystemMessageTestingOnly(player, "You need " + (pairs * 2) + " free inventory slots for these components.");
+            return;
+        }
+        obj_id[] created = new obj_id[pairs * 2];
+        boolean complete = false;
+        try
+        {
+            for (int i = 0; i < pairs; ++i)
+            {
+                int tier = capped ? armor_enhancement.DIRECT_FEATHER_TEMPLATES.length - 1 : rand(0, armor_enhancement.DIRECT_FEATHER_TEMPLATES.length - 1);
+                int health = capped ? armor_enhancement.MAX_HEALTH : rand(armor_enhancement.DIRECT_FEATHER_MIN_HEALTH[tier], armor_enhancement.DIRECT_FEATHER_MAX_HEALTH[tier]);
+                int mod = capped ? i : rand(0, armor_enhancement.SKILL_MODS.length - 1);
+                int value = capped ? armor_enhancement.getSkillModMaximum(mod) : rand(1, armor_enhancement.getSkillModMaximum(mod));
+                created[i * 2] = armor_enhancement.createTestFeather(inventory, tier, health);
+                if (!isIdValid(created[i * 2]))
+                {
+                    return;
+                }
+                created[i * 2 + 1] = armor_enhancement.createTestCartridge(inventory, mod, value);
+                if (!isIdValid(created[i * 2 + 1]))
+                {
+                    return;
+                }
+            }
+            complete = true;
+        }
+        finally
+        {
+            if (!complete)
+            {
+                for (obj_id component : created)
+                {
+                    if (isIdValid(component) && exists(component) && !destroyObject(component))
+                    {
+                        CustomerServiceLog("armor_enhancement", "Failed to remove partial frog component " + component + " for " + player);
+                    }
+                }
+                sendSystemMessageTestingOnly(player, "Unable to issue the complete component set. Please check your inventory before retrying.");
+            }
+        }
+        sendSystemMessageTestingOnly(player, capped ? "Issued five +50 Health feathers and one capped cartridge of each type." :
+            "Issued one random feather and one random cartridge. Examine them to see their values.");
+    }
+
     public int handleProtectionAmount(obj_id self, dictionary params) throws InterruptedException
     {
         if (params == null || params.isEmpty())

@@ -1,0 +1,30 @@
+@base object/draft_schematic/base/base_draft_schematic.iff
+@class draft_schematic_object_template 7
+
+category = CT_armor
+itemsPerContainer = 100
+craftedObjectTemplate = "object/tangible/component/armor/bio_mechanics_disease_resistance.iff"
+slots = [
+	[
+	optional=false,
+	name = "craft_armor_ingredients_n" "bio_mechanics_domestic_meat",
+	options = [[ingredientType=IT_resourceClass, ingredients = [[name="craft_armor_ingredients_n" "bio_mechanics_domestic_meat", ingredient="meat_domesticated", count=30]], complexity=0, skillCommand="unskilled"]],
+	optionalSkillCommand = "", complexity = 0, appearance = "" ],
+	[
+	optional=false,
+	name = "craft_armor_ingredients_n" "bio_mechanics_yavin_hide",
+	options = [[ingredientType=IT_resourceClass, ingredients = [[name="craft_armor_ingredients_n" "bio_mechanics_yavin_hide", ingredient="hide_bristley_yavin4", count=15]], complexity=0, skillCommand="unskilled"]],
+	optionalSkillCommand = "", complexity = 0, appearance = "" ],
+	[
+	optional=false,
+	name = "craft_armor_ingredients_n" "bio_mechanics_dantooine_bone",
+	options = [[ingredientType=IT_resourceClass, ingredients = [[name="craft_armor_ingredients_n" "bio_mechanics_dantooine_bone", ingredient="bone_avian_dantooine", count=20]], complexity=0, skillCommand="unskilled"]],
+	optionalSkillCommand = "", complexity = 0, appearance = "" ]]
+skillCommands = ["unskilled"]
+manufactureScripts = ["systems.crafting.armor.crafting_bio_mechanics_domestic_component"]
+@class intangible_object_template 1
+@class object_template 8
+complexity = 15
+volume = 1
+sharedTemplate = "object/draft_schematic/armor/component/shared_bio_mechanics_disease_resistance.iff"
+xpPoints = [[type=XP_craftingClothing, level=0, value=0]]
