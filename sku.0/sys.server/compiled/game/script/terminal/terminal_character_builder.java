@@ -1191,24 +1191,25 @@ public class terminal_character_builder extends script.base_script
         "Crafting Test Kit (stations, tools, resources, parts, retrofit tool)"
     };
     // Test kit for crafting seven bone-armor pieces and one cybernetic arm, then retrofitting.
-    // Cores carry the values the advanced battle core recipe writes (crafting_new_armor_core.java),
-    // at top experimentation, so they behave like crafted cores in the final armor craft.
-    public static final String[][] ARMOR_KIT_PLAIN_ITEMS = {
-        {"object/tangible/container/loot/armor_enhancement_retrofit_tool.iff", "1"},
-        {"object/tangible/crafting/station/clothing_station.iff", "1"},
-        {"object/tangible/crafting/station/clothing_tool.iff", "1"},
-        {"object/tangible/crafting/station/weapon_station.iff", "1"},
-        {"object/tangible/crafting/station/weapon_tool.iff", "1"},
-        {"object/tangible/component/clothing/fiberplast_panel.iff", "7"},
-        {"object/tangible/component/clothing/reinforced_fiber_panels.iff", "7"},
-        {"object/tangible/component/item/electronics_gp_module.iff", "6"},
-        {"object/tangible/component/item/micro_sensor_suite.iff", "2"},
-        {"object/tangible/component/cybernetic/cybernetic_module_health_two_core.iff", "1"}
+    // Components are made with makeCraftedItem, which runs each recipe's own crafting script
+    // at the given quality, so they are genuinely crafted items with serial numbers.
+    public static final String[] ARMOR_KIT_STATIONS = {
+        "object/tangible/crafting/station/clothing_station.iff",
+        "object/tangible/crafting/station/clothing_tool.iff",
+        "object/tangible/crafting/station/weapon_station.iff",
+        "object/tangible/crafting/station/weapon_tool.iff"
     };
-    public static final String ARMOR_KIT_CORE = "object/tangible/component/armor/armor_core_battle_advanced.iff";
-    public static final int ARMOR_KIT_CORE_COUNT = 13;
-    public static final int ARMOR_KIT_CORE_LEVEL = 2;
-    public static final float ARMOR_KIT_CORE_QUALITY = 1.0f;
+    public static final String ARMOR_KIT_BAG = "object/tangible/test/qabag.iff";
+    public static final String[][] ARMOR_KIT_CRAFTED = {
+        {"object/draft_schematic/armor/component/armor_core_battle_advanced.iff", "13"},
+        {"object/draft_schematic/clothing/component/clothing_fiberplast_panel.iff", "7"},
+        {"object/draft_schematic/clothing/component/clothing_reinforced_fiber_panels.iff", "7"},
+        {"object/draft_schematic/item/component/item_electronics_gp_module.iff", "6"},
+        {"object/draft_schematic/item/component/item_micro_sensor_suite.iff", "2"},
+        {"object/draft_schematic/droid/component/cybernetic_health_stat_module_arm_leg.iff", "1"},
+        {"object/draft_schematic/item/armor_enhancement_retrofit_tool.iff", "1"}
+    };
+    public static final float ARMOR_KIT_QUALITY = 100.0f;
     public static final String[] ARMOR_KIT_RESOURCE_CLASSES = {
         "bone", "metal", "steel", "petrochem_inert_polymer", "petrochem_inert_lubricating_oil"
     };
@@ -7265,7 +7266,7 @@ public class terminal_character_builder extends script.base_script
         refreshMenu(player, "Random pairs sample all nine feather tiers and five cartridge types equally. " +
             "Capped sets contain five +50 Health feathers, four +3 resistance cartridges and one +25 Terrain Negotiation cartridge. " +
             "These are finished components for crafting or retrofit; no armor is issued. " +
-            "The crafting test kit holds stations, tools, top-quality advanced battle armor cores, parts and resources for seven bone-armor pieces and one cybernetic arm, plus a retrofit tool.",
+            "The crafting test kit holds stations, tools, resources and a bag of crafted components for seven bone-armor pieces and one cybernetic arm, plus a retrofit tool.",
             "Armor Enhancement Components", ARMOR_COMPONENT_OPTIONS, "handleArmorComponentSelect", false);
         utils.setScriptVar(player, ARMOR_COMPONENT_TERMINAL, getSelf());
     }
@@ -7324,7 +7325,7 @@ public class terminal_character_builder extends script.base_script
     public void giveArmorCraftingKit(obj_id player) throws InterruptedException
     {
         obj_id inventory = utils.getInventoryContainer(player);
-        int needed = ARMOR_KIT_PLAIN_ITEMS.length + 1 + ARMOR_KIT_RESOURCE_CLASSES.length;
+        int needed = ARMOR_KIT_STATIONS.length + 1 + ARMOR_KIT_RESOURCE_CLASSES.length;
         if (!isIdValid(inventory) || !exists(inventory) || getVolumeFree(inventory) < needed)
         {
             sendSystemMessageTestingOnly(player, "You need " + needed + " free inventory slots for the crafting test kit.");
@@ -7335,32 +7336,35 @@ public class terminal_character_builder extends script.base_script
         String failure = "unexpected error";
         try
         {
-            for (String[] entry : ARMOR_KIT_PLAIN_ITEMS)
+            for (String station : ARMOR_KIT_STATIONS)
             {
-                obj_id item = createObject(entry[0], inventory, "");
+                obj_id item = createObject(station, inventory, "");
                 if (!isIdValid(item))
                 {
-                    failure = entry[0];
+                    failure = station;
                     return;
                 }
                 created[made++] = item;
+            }
+            obj_id bag = createObject(ARMOR_KIT_BAG, inventory, "");
+            if (!isIdValid(bag))
+            {
+                failure = ARMOR_KIT_BAG;
+                return;
+            }
+            created[made++] = bag;
+            setName(bag, "Armor Enhancement Test Components");
+            for (String[] entry : ARMOR_KIT_CRAFTED)
+            {
                 int count = utils.stringToInt(entry[1]);
-                if (count > 1)
+                for (int i = 0; i < count; ++i)
                 {
-                    setCount(item, count);
+                    if (!isIdValid(makeCraftedItem(entry[0], ARMOR_KIT_QUALITY, bag)))
+                    {
+                        failure = entry[0];
+                        return;
+                    }
                 }
-            }
-            obj_id cores = createObject(ARMOR_KIT_CORE, inventory, "");
-            if (!isIdValid(cores))
-            {
-                failure = ARMOR_KIT_CORE;
-                return;
-            }
-            created[made++] = cores;
-            if (!setKitCoreValues(cores, player))
-            {
-                failure = "armor core values";
-                return;
             }
             for (String resourceClass : ARMOR_KIT_RESOURCE_CLASSES)
             {
@@ -7398,36 +7402,9 @@ public class terminal_character_builder extends script.base_script
                 sendSystemMessageTestingOnly(player, "Unable to issue the crafting test kit (" + failure + "). Please check your inventory before retrying.");
             }
         }
-        sendSystemMessageTestingOnly(player, "Issued the crafting test kit: clothing and weapon stations and tools, " + ARMOR_KIT_CORE_COUNT +
-            " top-quality advanced battle armor cores, panels, cybernetic parts, a retrofit tool, and " + ARMOR_KIT_RESOURCE_AMOUNT +
-            " each of bone, metal, steel, polymer and lubricating oil.");
-    }
-
-    // Same component values crafting_new_armor_core.calcAndSetPrototypeProperties writes for an
-    // advanced battle core: level, category, condition (and its hit points), general protection, crafter.
-    public boolean setKitCoreValues(obj_id core, obj_id player) throws InterruptedException
-    {
-        int coreRow = dataTableSearchColumnForInt(getStringCrc(armor.DATATABLE_CORE_ROW + ARMOR_KIT_CORE_LEVEL), armor.DATATABLE_TYPE_COL, armor.DATATABLE_ARMOR);
-        if (coreRow < 0)
-        {
-            return false;
-        }
-        String root = craftinglib.COMPONENT_ATTRIBUTE_OBJVAR_NAME + ".";
-        setObjVar(core, root + armor.OBJVAR_ARMOR_LEVEL, ARMOR_KIT_CORE_LEVEL);
-        setObjVar(core, root + armor.OBJVAR_ARMOR_CATEGORY, AC_battle);
-        setObjVar(core, root + armor.OBJVAR_CONDITION, ARMOR_KIT_CORE_QUALITY);
-        setObjVar(core, root + armor.OBJVAR_GENERAL_PROTECTION, ARMOR_KIT_CORE_QUALITY);
-        float hp = armor.getAbsoluteArmorAttribute(ARMOR_KIT_CORE_QUALITY, coreRow, armor.DATATABLE_MIN_CONDITION_COL);
-        if (hp != Float.MIN_VALUE)
-        {
-            setMaxHitpoints(core, (int)hp);
-        }
-        setCrafter(core, player);
-        // Same stack handling as loot.randomizeComponent, so the stack can be split.
-        setObjVar(core, "unstack.serialNumber", utils.getInventoryContainer(player));
-        setCount(core, ARMOR_KIT_CORE_COUNT);
-        attachScript(core, "object.onewayunstack");
-        return true;
+        sendSystemMessageTestingOnly(player, "Issued the crafting test kit: clothing and weapon stations and tools, " + ARMOR_KIT_RESOURCE_AMOUNT +
+            " each of bone, metal, steel, polymer and lubricating oil, and a bag of crafted components at full quality " +
+            "(13 advanced battle armor cores, panels, cybernetic parts, a health module and a retrofit tool).");
     }
 
     public void giveArmorTestComponents(obj_id player, boolean capped) throws InterruptedException
