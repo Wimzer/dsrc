@@ -1191,7 +1191,7 @@ public class terminal_character_builder extends script.base_script
         "Crafting Test Kit (stations, tools, resources, parts, retrofit tool)"
     };
     // Test kit for crafting seven bone-armor pieces and one cybernetic arm, then retrofitting.
-    // Cores use loot.randomizeComponent so they carry armor level and category like a drop.
+    // Battle armor cores and segments are crafted by the tester; the crates cover those recipes too.
     public static final String[][] ARMOR_KIT_PLAIN_ITEMS = {
         {"object/tangible/container/loot/armor_enhancement_retrofit_tool.iff", "1"},
         {"object/tangible/crafting/station/clothing_station.iff", "1"},
@@ -1204,10 +1204,9 @@ public class terminal_character_builder extends script.base_script
         {"object/tangible/component/item/micro_sensor_suite.iff", "2"},
         {"object/tangible/component/cybernetic/cybernetic_module_health_two_core.iff", "1"}
     };
-    public static final String ARMOR_KIT_CORE = "object/tangible/component/armor/armor_core_battle_advanced.iff";
-    public static final int ARMOR_KIT_CORE_COUNT = 13;
     public static final String[] ARMOR_KIT_RESOURCE_CLASSES = {
-        "bone", "metal", "steel", "petrochem_inert_polymer", "petrochem_inert_lubricating_oil"
+        "bone", "metal", "steel", "petrochem_inert_polymer", "petrochem_inert_lubricating_oil",
+        "hide_wooly", "fiberplast", "gemstone", "aluminum"
     };
     public static final int ARMOR_KIT_RESOURCE_AMOUNT = 1000;
     public static final String ARMOR_COMPONENT_TERMINAL = "character_builder.armorComponentTerminal";
@@ -7262,7 +7261,7 @@ public class terminal_character_builder extends script.base_script
         refreshMenu(player, "Random pairs sample all nine feather tiers and five cartridge types equally. " +
             "Capped sets contain five +50 Health feathers, four +3 resistance cartridges and one +25 Terrain Negotiation cartridge. " +
             "These are finished components for crafting or retrofit; no armor is issued. " +
-            "The crafting test kit holds stations, tools, resources and parts for seven bone-armor pieces and one cybernetic arm, plus a retrofit tool.",
+            "The crafting test kit holds stations, tools, parts and resources for seven bone-armor pieces, their crafted battle armor cores and one cybernetic arm, plus a retrofit tool.",
             "Armor Enhancement Components", ARMOR_COMPONENT_OPTIONS, "handleArmorComponentSelect", false);
         utils.setScriptVar(player, ARMOR_COMPONENT_TERMINAL, getSelf());
     }
@@ -7321,7 +7320,7 @@ public class terminal_character_builder extends script.base_script
     public void giveArmorCraftingKit(obj_id player) throws InterruptedException
     {
         obj_id inventory = utils.getInventoryContainer(player);
-        int needed = ARMOR_KIT_PLAIN_ITEMS.length + 1 + ARMOR_KIT_RESOURCE_CLASSES.length;
+        int needed = ARMOR_KIT_PLAIN_ITEMS.length + ARMOR_KIT_RESOURCE_CLASSES.length;
         if (!isIdValid(inventory) || !exists(inventory) || getVolumeFree(inventory) < needed)
         {
             sendSystemMessageTestingOnly(player, "You need " + needed + " free inventory slots for the crafting test kit.");
@@ -7347,27 +7346,18 @@ public class terminal_character_builder extends script.base_script
                     setCount(item, count);
                 }
             }
-            obj_id cores = createObject(ARMOR_KIT_CORE, inventory, "");
-            if (!isIdValid(cores))
-            {
-                failure = ARMOR_KIT_CORE;
-                return;
-            }
-            created[made++] = cores;
-            if (!loot.randomizeComponent(cores, 90, inventory))
-            {
-                failure = ARMOR_KIT_CORE + " stats";
-                return;
-            }
-            setObjVar(cores, "unstack.serialNumber", inventory);
-            setCount(cores, ARMOR_KIT_CORE_COUNT);
-            if (!hasScript(cores, "object.onewayunstack"))
-            {
-                attachScript(cores, "object.onewayunstack");
-            }
             for (String resourceClass : ARMOR_KIT_RESOURCE_CLASSES)
             {
+                // Prefer a type spawned on this planet, then any type in the galaxy.
                 obj_id resourceId = pickRandomNonDepeletedResource(resourceClass);
+                if (!isIdValid(resourceId))
+                {
+                    obj_id[] resourceTypes = getResourceTypes(resourceClass);
+                    if (resourceTypes != null && resourceTypes.length > 0)
+                    {
+                        resourceId = resourceTypes[rand(0, resourceTypes.length - 1)];
+                    }
+                }
                 obj_id crate = isIdValid(resourceId) ? createResourceCrate(resourceId, ARMOR_KIT_RESOURCE_AMOUNT, inventory) : null;
                 if (!isIdValid(crate))
                 {
@@ -7392,8 +7382,8 @@ public class terminal_character_builder extends script.base_script
                 sendSystemMessageTestingOnly(player, "Unable to issue the crafting test kit (" + failure + "). Please check your inventory before retrying.");
             }
         }
-        sendSystemMessageTestingOnly(player, "Issued the crafting test kit: clothing and weapon stations and tools, " + ARMOR_KIT_CORE_COUNT +
-            " advanced battle armor cores, panels, cybernetic parts, " + ARMOR_KIT_RESOURCE_AMOUNT + " each of bone, metal, steel, inert polymer and lubricating oil, and a retrofit tool.");
+        sendSystemMessageTestingOnly(player, "Issued the crafting test kit: clothing and weapon stations and tools, panels, cybernetic parts, a retrofit tool, and " +
+            ARMOR_KIT_RESOURCE_AMOUNT + " each of bone, metal, steel, polymer, lubricating oil, wooly hide, fiberplast, gemstone and aluminum (enough to craft 13 basic battle armor cores and their segments).");
     }
 
     public void giveArmorTestComponents(obj_id player, boolean capped) throws InterruptedException
