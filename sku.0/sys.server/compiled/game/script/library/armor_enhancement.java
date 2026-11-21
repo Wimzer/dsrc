@@ -117,7 +117,10 @@ public class armor_enhancement extends script.base_script
             int[] bonuses = new int[NUM_ATTRIBUTES];
             bonuses[HEALTH] = health;
             setAttributeBonuses(component, bonuses);
-            valid = getFinishedFeatherHealth(component) == health;
+            // Template crafting slots accept only crafted components (PlayerObject::fillSlot);
+            // mark the feather the way loot.randomizeComponent marks a dropped component.
+            valid = setCraftedId(component, inventory) && setCrafter(component, inventory) &&
+                getFinishedFeatherHealth(component) == health;
             return valid ? component : null;
         }
         finally
@@ -144,7 +147,9 @@ public class armor_enhancement extends script.base_script
         boolean valid = false;
         try
         {
-            valid = applyPayload(component, false, 0, skillModIndex, value) &&
+            // Crafted marking as item.special.serialize_component does, so slots accept it.
+            valid = setCraftedId(component, component) && setCrafter(component, component) &&
+                applyPayload(component, false, 0, skillModIndex, value) &&
                 getFinishedCartridgeSkillModIndex(component) == skillModIndex && getFinishedCartridgeSkillValue(component) == value;
             return valid ? component : null;
         }
