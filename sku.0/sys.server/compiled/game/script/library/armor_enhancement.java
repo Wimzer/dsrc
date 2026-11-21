@@ -856,9 +856,49 @@ public class armor_enhancement extends script.base_script
         return hasHealth || hasSkillMod;
     }
 
+    // A retrofit may load only a feather or only a cartridge (user, 2026-11-21). The part that
+    // is not loaded keeps the target's current value; "no cartridge" is RETROFIT_NO_SKILL_MOD
+    // with value 0 so the persisted operation record keeps its original shape.
+    public static final String RETROFIT_NO_SKILL_MOD = "none";
+
+    public static boolean isValidRetrofitSkill(int skillModIndex, int skillValue) throws InterruptedException
+    {
+        if (skillModIndex == -1)
+        {
+            return skillValue == 0;
+        }
+        return skillModIndex >= 0 && skillModIndex < SKILL_MODS.length && isValidSkillMod(SKILL_MODS[skillModIndex], skillValue);
+    }
+
+    public static String getRetrofitSkillModName(int skillModIndex) throws InterruptedException
+    {
+        return skillModIndex >= 0 && skillModIndex < SKILL_MODS.length ? SKILL_MODS[skillModIndex] : RETROFIT_NO_SKILL_MOD;
+    }
+
+    public static int getRetrofitSkillModIndex(String skillMod) throws InterruptedException
+    {
+        return RETROFIT_NO_SKILL_MOD.equals(skillMod) ? -1 : getSkillModIndex(skillMod);
+    }
+
+    // Current feature-owned values on a target; callers check validateAppliedPayload first.
+    public static int getAppliedHealth(obj_id target) throws InterruptedException
+    {
+        return hasObjVar(target, OBJVAR_HEALTH) ? getIntObjVar(target, OBJVAR_HEALTH) : 0;
+    }
+
+    public static int getAppliedSkillModIndex(obj_id target) throws InterruptedException
+    {
+        return hasObjVar(target, OBJVAR_SKILL_MOD) ? getSkillModIndex(getStringObjVar(target, OBJVAR_SKILL_MOD)) : -1;
+    }
+
+    public static int getAppliedSkillValue(obj_id target) throws InterruptedException
+    {
+        return hasObjVar(target, OBJVAR_SKILL_MOD) && hasObjVar(target, OBJVAR_SKILL_VALUE) ? getIntObjVar(target, OBJVAR_SKILL_VALUE) : 0;
+    }
+
     public static boolean prepareRetrofitTarget(obj_id target, String operationId, int health, int skillModIndex, int skillValue) throws InterruptedException
     {
-        if (!isEligibleRetrofitTarget(target) || operationId == null || operationId.length() == 0 || health < 0 || health > MAX_HEALTH || skillModIndex < 0 || skillModIndex >= SKILL_MODS.length || !isValidSkillMod(SKILL_MODS[skillModIndex], skillValue) || !validateAppliedPayload(target))
+        if (!isEligibleRetrofitTarget(target) || operationId == null || operationId.length() == 0 || health < 0 || health > MAX_HEALTH || !isValidRetrofitSkill(skillModIndex, skillValue) || health == 0 && skillModIndex < 0 || !validateAppliedPayload(target))
         {
             return false;
         }
@@ -867,7 +907,7 @@ public class armor_enhancement extends script.base_script
             return operationId.equals(getStringObjVar(target, RETROFIT_ID)) &&
                 hasObjVar(target, RETROFIT_HEALTH_TOTAL) &&
                 hasObjVar(target, RETROFIT_HEALTH) && getIntObjVar(target, RETROFIT_HEALTH) == health &&
-                hasObjVar(target, RETROFIT_SKILL_MOD) && SKILL_MODS[skillModIndex].equals(getStringObjVar(target, RETROFIT_SKILL_MOD)) &&
+                hasObjVar(target, RETROFIT_SKILL_MOD) && getRetrofitSkillModName(skillModIndex).equals(getStringObjVar(target, RETROFIT_SKILL_MOD)) &&
                 hasObjVar(target, RETROFIT_SKILL_VALUE) && getIntObjVar(target, RETROFIT_SKILL_VALUE) == skillValue;
         }
         removeObjVar(target, RETROFIT_ROOT);
@@ -876,7 +916,7 @@ public class armor_enhancement extends script.base_script
         int currentHealth = attributeBonuses != null && attributeBonuses.length == NUM_ATTRIBUTES ? attributeBonuses[HEALTH] : 0;
         setObjVar(target, RETROFIT_HEALTH_TOTAL, currentHealth - previousHealth + health);
         setObjVar(target, RETROFIT_HEALTH, health);
-        setObjVar(target, RETROFIT_SKILL_MOD, SKILL_MODS[skillModIndex]);
+        setObjVar(target, RETROFIT_SKILL_MOD, getRetrofitSkillModName(skillModIndex));
         setObjVar(target, RETROFIT_SKILL_VALUE, skillValue);
         setObjVar(target, RETROFIT_APPLIED, 0);
         setObjVar(target, RETROFIT_ID, operationId);
@@ -894,7 +934,8 @@ public class armor_enhancement extends script.base_script
         int health = getIntObjVar(target, RETROFIT_HEALTH);
         String skillMod = getStringObjVar(target, RETROFIT_SKILL_MOD);
         int skillValue = getIntObjVar(target, RETROFIT_SKILL_VALUE);
-        if (health < 0 || health > MAX_HEALTH || !isValidSkillMod(skillMod, skillValue))
+        int skillModIndex = getRetrofitSkillModIndex(skillMod);
+        if (health < 0 || health > MAX_HEALTH || !isValidRetrofitSkill(skillModIndex, skillValue) || health == 0 && skillModIndex < 0)
         {
             return false;
         }
@@ -902,7 +943,7 @@ public class armor_enhancement extends script.base_script
         String previousSkillMod = hasObjVar(target, OBJVAR_SKILL_MOD) ? getStringObjVar(target, OBJVAR_SKILL_MOD) : "";
         int previousSkillValue = hasObjVar(target, OBJVAR_SKILL_VALUE) ? getIntObjVar(target, OBJVAR_SKILL_VALUE) : 0;
         removeCategorizedSkillModBonuses(target, CATEGORY);
-        if (!setCategorizedSkillModBonus(target, CATEGORY, skillMod, skillValue))
+        if (skillModIndex >= 0 && !setCategorizedSkillModBonus(target, CATEGORY, skillMod, skillValue))
         {
             if (isValidSkillMod(previousSkillMod, previousSkillValue))
             {
@@ -923,8 +964,11 @@ public class armor_enhancement extends script.base_script
         {
             setObjVar(target, OBJVAR_HEALTH, health);
         }
-        setObjVar(target, OBJVAR_SKILL_MOD, skillMod);
-        setObjVar(target, OBJVAR_SKILL_VALUE, skillValue);
+        if (skillModIndex >= 0)
+        {
+            setObjVar(target, OBJVAR_SKILL_MOD, skillMod);
+            setObjVar(target, OBJVAR_SKILL_VALUE, skillValue);
+        }
         setObjVar(target, OBJVAR_VERSION, VERSION);
         setObjVar(target, RETROFIT_APPLIED, 1);
         return true;
@@ -947,12 +991,15 @@ public class armor_enhancement extends script.base_script
 
     public static boolean matchesAppliedPayload(obj_id target, int health, int skillModIndex, int skillValue) throws InterruptedException
     {
-        if (!isIdValid(target) || !exists(target) || health < 0 || health > MAX_HEALTH || skillModIndex < 0 || skillModIndex >= SKILL_MODS.length || !isValidSkillMod(SKILL_MODS[skillModIndex], skillValue) || !validateAppliedPayload(target))
+        if (!isIdValid(target) || !exists(target) || health < 0 || health > MAX_HEALTH || !isValidRetrofitSkill(skillModIndex, skillValue) || !validateAppliedPayload(target))
         {
             return false;
         }
-        int storedHealth = hasObjVar(target, OBJVAR_HEALTH) ? getIntObjVar(target, OBJVAR_HEALTH) : 0;
-        return storedHealth == health &&
+        if (skillModIndex < 0)
+        {
+            return getAppliedHealth(target) == health && !hasObjVar(target, OBJVAR_SKILL_MOD) && !hasObjVar(target, OBJVAR_SKILL_VALUE);
+        }
+        return getAppliedHealth(target) == health &&
             hasObjVar(target, OBJVAR_SKILL_MOD) && SKILL_MODS[skillModIndex].equals(getStringObjVar(target, OBJVAR_SKILL_MOD)) &&
             hasObjVar(target, OBJVAR_SKILL_VALUE) && getIntObjVar(target, OBJVAR_SKILL_VALUE) == skillValue;
     }

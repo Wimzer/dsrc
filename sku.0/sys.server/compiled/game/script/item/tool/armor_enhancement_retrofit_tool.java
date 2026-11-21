@@ -30,6 +30,10 @@ public class armor_enhancement_retrofit_tool extends script.base_script
     public static final String OPERATION_TARGET_APPLIED = OPERATION_ROOT + ".target_applied";
     public static final String OPERATION_FEATHER_CONSUMED = OPERATION_ROOT + ".feather_consumed";
     public static final String OPERATION_CARTRIDGE_CONSUMED = OPERATION_ROOT + ".cartridge_consumed";
+    // Either-or retrofit (user, 2026-11-21). Absent on records written before it: both loaded.
+    // An unloaded component is recorded as already consumed, with the tool as a placeholder id.
+    public static final String OPERATION_FEATHER_LOADED = OPERATION_ROOT + ".feather_loaded";
+    public static final String OPERATION_CARTRIDGE_LOADED = OPERATION_ROOT + ".cartridge_loaded";
 
     public static final String TITLE = "Armor Enhancement Retrofit";
     public static final String LOG_CATEGORY = "armor_enhancement";
@@ -113,7 +117,7 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         }
         if (!validateLoadedComponents(self))
         {
-            sendMessage(player, "Load exactly one valid finished feather attachment and one valid finished Biological Mechanics Cartridge.");
+            sendMessage(player, "Load a finished feather attachment, a finished Biological Mechanics Cartridge, or one of each.");
             return SCRIPT_CONTINUE;
         }
         beginTargetSelection(self, player);
@@ -180,11 +184,15 @@ public class armor_enhancement_retrofit_tool extends script.base_script
 
         obj_id feather = getLoadedFeather(self);
         obj_id cartridge = getLoadedCartridge(self);
-        int health = armor_enhancement.getFinishedFeatherHealth(feather);
-        int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
-        int skillValue = armor_enhancement.getFinishedCartridgeSkillValue(cartridge);
-        String skillName = localize(new string_id("stat_n", armor_enhancement.SKILL_MODS[skillModIndex]));
-        String prompt = "Apply +" + health + " Health and +" + skillValue + " " + skillName + " to " + getEncodedName(target) + "? Existing bonuses from this enhancement system will be replaced. Both loaded components will be consumed.";
+        int[] payload = getRetrofitPayload(target, feather, cartridge);
+        if (payload == null)
+        {
+            cleanupSession(self, player);
+            sendMessage(player, "The selected target or loaded components are no longer valid.");
+            return SCRIPT_CONTINUE;
+        }
+        String prompt = "Retrofit " + getEncodedName(target) + "? " + describeChange(isIdValid(feather), isIdValid(cartridge), payload) +
+            " Only bonuses from this enhancement system change. The loaded " + (isIdValid(feather) && isIdValid(cartridge) ? "components" : "component") + " will be consumed.";
 
         sui.removePid(player, SESSION_PID);
         utils.setScriptVar(self, SESSION_TARGET, target);
@@ -220,24 +228,32 @@ public class armor_enhancement_retrofit_tool extends script.base_script
 
         obj_id feather = getLoadedFeather(self);
         obj_id cartridge = getLoadedCartridge(self);
-        int health = armor_enhancement.getFinishedFeatherHealth(feather);
-        int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
-        int skillValue = armor_enhancement.getFinishedCartridgeSkillValue(cartridge);
+        int[] payload = getRetrofitPayload(target, feather, cartridge);
+        if (payload == null)
+        {
+            cleanupSession(self, player);
+            sendMessage(player, "The retrofit was cancelled because the target or components changed.");
+            return SCRIPT_CONTINUE;
+        }
+        boolean featherLoaded = isIdValid(feather);
+        boolean cartridgeLoaded = isIdValid(cartridge);
         String operationId = player + ":" + target + ":" + getGameTime() + ":" + rand(1, 2147483647);
 
         cleanupSession(self, player);
         setObjVar(self, OPERATION_PLAYER, player);
         setObjVar(self, OPERATION_TARGET, target);
-        setObjVar(self, OPERATION_FEATHER, feather);
-        setObjVar(self, OPERATION_CARTRIDGE, cartridge);
-        setObjVar(self, OPERATION_FEATHER_COUNT, getCount(feather));
-        setObjVar(self, OPERATION_CARTRIDGE_COUNT, getCount(cartridge));
-        setObjVar(self, OPERATION_HEALTH, health);
-        setObjVar(self, OPERATION_SKILL_MOD, armor_enhancement.SKILL_MODS[skillModIndex]);
-        setObjVar(self, OPERATION_SKILL_VALUE, skillValue);
+        setObjVar(self, OPERATION_FEATHER, featherLoaded ? feather : self);
+        setObjVar(self, OPERATION_CARTRIDGE, cartridgeLoaded ? cartridge : self);
+        setObjVar(self, OPERATION_FEATHER_COUNT, featherLoaded ? getCount(feather) : 1);
+        setObjVar(self, OPERATION_CARTRIDGE_COUNT, cartridgeLoaded ? getCount(cartridge) : 1);
+        setObjVar(self, OPERATION_FEATHER_LOADED, featherLoaded ? 1 : 0);
+        setObjVar(self, OPERATION_CARTRIDGE_LOADED, cartridgeLoaded ? 1 : 0);
+        setObjVar(self, OPERATION_HEALTH, payload[0]);
+        setObjVar(self, OPERATION_SKILL_MOD, armor_enhancement.getRetrofitSkillModName(payload[1]));
+        setObjVar(self, OPERATION_SKILL_VALUE, payload[2]);
         setObjVar(self, OPERATION_TARGET_APPLIED, 0);
-        setObjVar(self, OPERATION_FEATHER_CONSUMED, 0);
-        setObjVar(self, OPERATION_CARTRIDGE_CONSUMED, 0);
+        setObjVar(self, OPERATION_FEATHER_CONSUMED, featherLoaded ? 0 : 1);
+        setObjVar(self, OPERATION_CARTRIDGE_CONSUMED, cartridgeLoaded ? 0 : 1);
         setObjVar(self, OPERATION_ID, operationId);
 
         if (!recoverOperation(self, player, true))
@@ -269,7 +285,7 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         obj_id feather = getObjIdObjVar(self, OPERATION_FEATHER);
         obj_id cartridge = getObjIdObjVar(self, OPERATION_CARTRIDGE);
         int health = getIntObjVar(self, OPERATION_HEALTH);
-        int skillModIndex = armor_enhancement.getSkillModIndex(getStringObjVar(self, OPERATION_SKILL_MOD));
+        int skillModIndex = armor_enhancement.getRetrofitSkillModIndex(getStringObjVar(self, OPERATION_SKILL_MOD));
         int skillValue = getIntObjVar(self, OPERATION_SKILL_VALUE);
         if (!isIdValid(recordedPlayer) || !recordedPlayer.equals(player) || !isInMainInventory(self, recordedPlayer) || !isInMainInventory(target, recordedPlayer) || utils.isEquipped(target) || !armor_enhancement.isEligibleRetrofitTarget(target))
         {
@@ -278,7 +294,8 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         boolean targetApplied = getIntObjVar(self, OPERATION_TARGET_APPLIED) == 1 || armor_enhancement.isRetrofitOperationApplied(target, operationId);
         int featherState = getConsumptionState(self, feather, OPERATION_FEATHER_COUNT, OPERATION_FEATHER_CONSUMED, targetApplied);
         int cartridgeState = getConsumptionState(self, cartridge, OPERATION_CARTRIDGE_COUNT, OPERATION_CARTRIDGE_CONSUMED, targetApplied);
-        if (featherState < 0 || cartridgeState < 0 || skillModIndex < 0 || health < 0 || health > armor_enhancement.MAX_HEALTH || !armor_enhancement.isValidSkillMod(armor_enhancement.SKILL_MODS[skillModIndex], skillValue))
+        if (featherState < 0 || cartridgeState < 0 || health < 0 || health > armor_enhancement.MAX_HEALTH || !armor_enhancement.isValidRetrofitSkill(skillModIndex, skillValue) || health == 0 && skillModIndex < 0 ||
+            !isOperationLoaded(self, OPERATION_FEATHER_LOADED) && !isOperationLoaded(self, OPERATION_CARTRIDGE_LOADED))
         {
             CustomerServiceLog(LOG_CATEGORY, "Retrofit operation " + operationId + " has invalid recovery state on tool " + self + ".");
             return false;
@@ -337,23 +354,77 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         return isInMainInventory(self, player) && isInMainInventory(target, player) && !utils.isEquipped(target) && armor_enhancement.isEligibleRetrofitTarget(target) && !armor_enhancement.hasRetrofitOperation(target) && validateLoadedComponents(self);
     }
 
+    // One feather, one cartridge, or one of each; nothing else.
     public boolean validateLoadedComponents(obj_id self) throws InterruptedException
     {
         obj_id[] contents = getContents(self);
-        if (contents == null || contents.length != 2)
+        if (contents == null || contents.length < 1 || contents.length > 2)
         {
             return false;
         }
         obj_id feather = getLoadedFeather(self);
         obj_id cartridge = getLoadedCartridge(self);
-        if (!isIdValid(feather) || !isIdValid(cartridge) || feather.equals(cartridge) || getContainedBy(feather) != self || getContainedBy(cartridge) != self || getCount(feather) < 1 || getCount(cartridge) < 1)
+        int loaded = (isIdValid(feather) ? 1 : 0) + (isIdValid(cartridge) ? 1 : 0);
+        if (loaded != contents.length || isIdValid(feather) && isIdValid(cartridge) && feather.equals(cartridge))
         {
             return false;
         }
-        int health = armor_enhancement.getFinishedFeatherHealth(feather);
-        int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
-        int skillValue = armor_enhancement.getFinishedCartridgeSkillValue(cartridge);
-        return health >= 0 && skillModIndex >= 0 && armor_enhancement.isValidSkillMod(armor_enhancement.SKILL_MODS[skillModIndex], skillValue);
+        if (isIdValid(feather) && (getContainedBy(feather) != self || getCount(feather) < 1 || armor_enhancement.getFinishedFeatherHealth(feather) < 0))
+        {
+            return false;
+        }
+        if (isIdValid(cartridge))
+        {
+            int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
+            if (getContainedBy(cartridge) != self || getCount(cartridge) < 1 || skillModIndex < 0 ||
+                !armor_enhancement.isValidSkillMod(armor_enhancement.SKILL_MODS[skillModIndex], armor_enhancement.getFinishedCartridgeSkillValue(cartridge)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // {health, skill mod index (-1 none), skill value}: loaded components replace their part,
+    // the other part keeps the target's current feature-owned value.
+    public int[] getRetrofitPayload(obj_id target, obj_id feather, obj_id cartridge) throws InterruptedException
+    {
+        if (!armor_enhancement.validateAppliedPayload(target) || !isIdValid(feather) && !isIdValid(cartridge))
+        {
+            return null;
+        }
+        int health = isIdValid(feather) ? armor_enhancement.getFinishedFeatherHealth(feather) : armor_enhancement.getAppliedHealth(target);
+        int skillModIndex = isIdValid(cartridge) ? armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge) : armor_enhancement.getAppliedSkillModIndex(target);
+        int skillValue = isIdValid(cartridge) ? armor_enhancement.getFinishedCartridgeSkillValue(cartridge) : armor_enhancement.getAppliedSkillValue(target);
+        if (skillModIndex < 0)
+        {
+            skillValue = 0;
+        }
+        if (health < 0 || health > armor_enhancement.MAX_HEALTH || !armor_enhancement.isValidRetrofitSkill(skillModIndex, skillValue) || health == 0 && skillModIndex < 0)
+        {
+            return null;
+        }
+        return new int[]{health, skillModIndex, skillValue};
+    }
+
+    public String describeChange(boolean featherLoaded, boolean cartridgeLoaded, int[] payload) throws InterruptedException
+    {
+        String skill = payload[1] >= 0 ? "+" + payload[2] + " " + localize(new string_id("stat_n", armor_enhancement.SKILL_MODS[payload[1]])) : "no cartridge bonus";
+        String health = payload[0] > 0 ? "+" + payload[0] + " Health" : "no feather Health";
+        if (featherLoaded && cartridgeLoaded)
+        {
+            return "Apply " + health + " and " + skill + ".";
+        }
+        if (featherLoaded)
+        {
+            return "Apply " + health + "; the current cartridge bonus (" + skill + ") is kept.";
+        }
+        return "Apply " + skill + "; the current feather Health (" + health + ") is kept.";
+    }
+
+    public boolean isOperationLoaded(obj_id self, String loadedObjVar) throws InterruptedException
+    {
+        return !hasObjVar(self, loadedObjVar) || getIntObjVar(self, loadedObjVar) == 1;
     }
 
     public obj_id getLoadedFeather(obj_id self) throws InterruptedException
@@ -436,10 +507,14 @@ public class armor_enhancement_retrofit_tool extends script.base_script
 
     public boolean validateOperationComponents(obj_id self, obj_id feather, obj_id cartridge, int health, int skillModIndex, int skillValue) throws InterruptedException
     {
-        return isIdValid(feather) && exists(feather) && getContainedBy(feather) == self && getCount(feather) == getIntObjVar(self, OPERATION_FEATHER_COUNT) &&
-            armor_enhancement.getFinishedFeatherHealth(feather) == health && isIdValid(cartridge) && exists(cartridge) && getContainedBy(cartridge) == self &&
+        boolean featherOk = !isOperationLoaded(self, OPERATION_FEATHER_LOADED) ||
+            isIdValid(feather) && exists(feather) && getContainedBy(feather) == self && getCount(feather) == getIntObjVar(self, OPERATION_FEATHER_COUNT) &&
+            armor_enhancement.getFinishedFeatherHealth(feather) == health;
+        boolean cartridgeOk = !isOperationLoaded(self, OPERATION_CARTRIDGE_LOADED) ||
+            isIdValid(cartridge) && exists(cartridge) && getContainedBy(cartridge) == self &&
             getCount(cartridge) == getIntObjVar(self, OPERATION_CARTRIDGE_COUNT) && armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge) == skillModIndex &&
             armor_enhancement.getFinishedCartridgeSkillValue(cartridge) == skillValue;
+        return featherOk && cartridgeOk;
     }
 
     public int getConsumptionState(obj_id self, obj_id component, String countObjVar, String consumedObjVar, boolean targetApplied) throws InterruptedException
