@@ -757,11 +757,6 @@ public class armor_enhancement extends script.base_script
             CustomerServiceLog("armor_enhancement", "Rejected incomplete Biological Mechanics Cartridge payload on prototype " + prototype);
             return false;
         }
-        int previousHealth = 0;
-        if (hasObjVar(prototype, OBJVAR_HEALTH))
-        {
-            previousHealth = getIntObjVar(prototype, OBJVAR_HEALTH);
-        }
         String previousSkillMod = "";
         int previousSkillValue = 0;
         if (hasObjVar(prototype, OBJVAR_SKILL_MOD) && hasObjVar(prototype, OBJVAR_SKILL_VALUE))
@@ -783,20 +778,11 @@ public class armor_enhancement extends script.base_script
             }
         }
 
-        int[] attributeBonuses = getAttributeBonuses(prototype);
-        if (attributeBonuses != null && attributeBonuses.length == NUM_ATTRIBUTES)
-        {
-            int healthWithoutEnhancement = attributeBonuses[HEALTH] - previousHealth;
-            attributeBonuses[HEALTH] = healthWithoutEnhancement + (hasHealth ? health : 0);
-            setAttributeBonuses(prototype, attributeBonuses);
-        }
-        else if (hasHealth)
-        {
-            attributeBonuses = new int[NUM_ATTRIBUTES];
-            attributeBonuses[HEALTH] = health;
-            setAttributeBonuses(prototype, attributeBonuses);
-        }
-
+        // Health is not written here. Stock crafting already carries the feather's attribute
+        // bonus: components roll up into the schematic (crafting_base.calcAndSetPrototypeProperties)
+        // and the finished item receives the schematic's bonuses (crafting_base.OnManufactureObject).
+        // Adding it again doubled the value shown in the crafting window. This records only the
+        // feature-owned share, which retrofit replacement subtracts later.
         removeObjVar(prototype, OBJVAR_ROOT);
         if (hasHealth)
         {
