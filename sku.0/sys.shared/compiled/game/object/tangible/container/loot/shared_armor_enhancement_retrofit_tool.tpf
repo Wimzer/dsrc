@@ -4,7 +4,7 @@
 
 @class object_template 5
 
-containerVolumeLimit = 2
+containerVolumeLimit = 3
 
 objectName = "item_n" "armor_enhancement_retrofit_tool"
 

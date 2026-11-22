@@ -6,13 +6,11 @@ import script.library.armor_enhancement;
 import script.library.sui;
 import script.library.utils;
 
-import java.util.Vector;
 
 public class armor_enhancement_retrofit_tool extends script.base_script
 {
     public static final String SESSION_ROOT = "armor_enhancement_retrofit_session";
     public static final String SESSION_PLAYER = SESSION_ROOT + ".player";
-    public static final String SESSION_TARGETS = SESSION_ROOT + ".targets";
     public static final String SESSION_TARGET = SESSION_ROOT + ".target";
     public static final String SESSION_PID = SESSION_ROOT + ".pid";
 
@@ -59,23 +57,25 @@ public class armor_enhancement_retrofit_tool extends script.base_script
             return SCRIPT_OVERRIDE;
         }
         obj_id[] contents = getContents(self);
-        if (contents == null || contents.length >= 2)
+        if (contents == null || contents.length >= 3)
         {
-            sendMessage(transferer, "The retrofit tool can hold exactly one feather attachment and one Biological Mechanics Cartridge.");
+            sendMessage(transferer, "The retrofit tool holds one armor piece, one feather attachment and one Biological Mechanics Cartridge.");
             return SCRIPT_OVERRIDE;
         }
+        // Like the socket retrofit tool, the piece to change is loaded into the tool.
+        boolean incomingTarget = isRetrofitTarget(item);
         boolean incomingFeather = armor_enhancement.getFinishedFeatherHealth(item) >= 0;
         boolean incomingCartridge = armor_enhancement.getFinishedCartridgeSkillModIndex(item) >= 0;
-        if (incomingFeather == incomingCartridge)
+        if ((incomingTarget ? 1 : 0) + (incomingFeather ? 1 : 0) + (incomingCartridge ? 1 : 0) != 1)
         {
-            sendMessage(transferer, "Only a finished feather attachment or finished Biological Mechanics Cartridge can be loaded.");
+            sendMessage(transferer, "Only an unequipped crafted armor piece or core-bearing cybernetic, a finished feather attachment, or a finished Biological Mechanics Cartridge can be loaded.");
             return SCRIPT_OVERRIDE;
         }
         for (obj_id content : contents)
         {
-            if (incomingFeather && armor_enhancement.getFinishedFeatherHealth(content) >= 0 || incomingCartridge && armor_enhancement.getFinishedCartridgeSkillModIndex(content) >= 0)
+            if (incomingTarget && isRetrofitTarget(content) || incomingFeather && armor_enhancement.getFinishedFeatherHealth(content) >= 0 || incomingCartridge && armor_enhancement.getFinishedCartridgeSkillModIndex(content) >= 0)
             {
-                sendMessage(transferer, "The retrofit tool already contains that component type.");
+                sendMessage(transferer, "The retrofit tool already contains one of those.");
                 return SCRIPT_OVERRIDE;
             }
         }
@@ -115,95 +115,48 @@ public class armor_enhancement_retrofit_tool extends script.base_script
             }
             return SCRIPT_CONTINUE;
         }
-        if (!validateLoadedComponents(self))
+        if (!isIdValid(getLoadedTarget(self)))
         {
-            sendMessage(player, "Load a finished feather attachment, a finished Biological Mechanics Cartridge, or one of each.");
+            sendMessage(player, "Load the armor piece or core-bearing cybernetic to change into the tool, with a feather attachment, a Biological Mechanics Cartridge, or both.");
             return SCRIPT_CONTINUE;
         }
-        beginTargetSelection(self, player);
+        if (!validateLoadedComponents(self))
+        {
+            sendMessage(player, "Load a finished feather attachment, a finished Biological Mechanics Cartridge, or one of each, with the armor piece.");
+            return SCRIPT_CONTINUE;
+        }
+        beginConfirmation(self, player);
         return SCRIPT_CONTINUE;
     }
 
-    public void beginTargetSelection(obj_id self, obj_id player) throws InterruptedException
+    public void beginConfirmation(obj_id self, obj_id player) throws InterruptedException
     {
         cleanupSession(self, player);
-        obj_id inventory = utils.getInventoryContainer(player);
-        obj_id[] inventoryContents = utils.getContents(inventory, true);
-        Vector targets = new Vector();
-        Vector targetNames = new Vector();
-        for (obj_id target : inventoryContents)
-        {
-            if (armor_enhancement.isEligibleRetrofitTarget(target) && !utils.isEquipped(target) && !armor_enhancement.hasRetrofitOperation(target))
-            {
-                targets.addElement(target);
-                targetNames.addElement(getEncodedName(target));
-            }
-        }
-        if (targets.isEmpty())
-        {
-            sendMessage(player, "No eligible unequipped armor or core-bearing cybernetic target was found in your inventory.");
-            return;
-        }
-        utils.setScriptVar(self, SESSION_PLAYER, player);
-        utils.setScriptVar(self, SESSION_TARGETS, targets);
-        int pid = sui.listbox(self, player, "Select the armor or core-bearing cybernetic item to enhance.", sui.OK_CANCEL, TITLE, targetNames, "handleTargetSelection", true, false);
-        if (pid < 0)
-        {
-            cleanupSession(self, player);
-            return;
-        }
-        sui.setPid(player, pid, SESSION_PID);
-    }
-
-    public int handleTargetSelection(obj_id self, dictionary params) throws InterruptedException
-    {
-        obj_id player = getValidSessionPlayer(self, params);
-        if (!isIdValid(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (sui.getIntButtonPressed(params) == sui.BP_CANCEL)
-        {
-            cleanupSession(self, player);
-            return SCRIPT_CONTINUE;
-        }
-        int index = sui.getListboxSelectedRow(params);
-        obj_id[] targets = utils.getObjIdArrayScriptVar(self, SESSION_TARGETS);
-        if (index < 0 || targets == null || index >= targets.length)
-        {
-            cleanupSession(self, player);
-            return SCRIPT_CONTINUE;
-        }
-        obj_id target = targets[index];
+        obj_id target = getLoadedTarget(self);
         if (!validateCommitObjects(self, player, target))
         {
-            cleanupSession(self, player);
-            sendMessage(player, "The selected target or loaded components are no longer valid.");
-            return SCRIPT_CONTINUE;
+            sendMessage(player, "The loaded armor piece or components cannot be retrofitted.");
+            return;
         }
-
         obj_id feather = getLoadedFeather(self);
         obj_id cartridge = getLoadedCartridge(self);
         int[] payload = getRetrofitPayload(target, feather, cartridge);
         if (payload == null)
         {
-            cleanupSession(self, player);
-            sendMessage(player, "The selected target or loaded components are no longer valid.");
-            return SCRIPT_CONTINUE;
+            sendMessage(player, "The loaded armor piece or components cannot be retrofitted.");
+            return;
         }
         String prompt = "Retrofit " + getEncodedName(target) + "? " + describeChange(isIdValid(feather), isIdValid(cartridge), payload) +
             " Only bonuses from this enhancement system change. The loaded " + (isIdValid(feather) && isIdValid(cartridge) ? "components" : "component") + " will be consumed.";
-
-        sui.removePid(player, SESSION_PID);
+        utils.setScriptVar(self, SESSION_PLAYER, player);
         utils.setScriptVar(self, SESSION_TARGET, target);
         int pid = sui.msgbox(self, player, prompt, sui.YES_NO, TITLE, "handleRetrofitConfirmation");
         if (pid < 0)
         {
             cleanupSession(self, player);
-            return SCRIPT_CONTINUE;
+            return;
         }
         sui.setPid(player, pid, SESSION_PID);
-        return SCRIPT_CONTINUE;
     }
 
     public int handleRetrofitConfirmation(obj_id self, dictionary params) throws InterruptedException
@@ -219,7 +172,7 @@ public class armor_enhancement_retrofit_tool extends script.base_script
             return SCRIPT_CONTINUE;
         }
         obj_id target = utils.getObjIdScriptVar(self, SESSION_TARGET);
-        if (!validateCommitObjects(self, player, target))
+        if (!isIdValid(target) || !target.equals(getLoadedTarget(self)) || !validateCommitObjects(self, player, target))
         {
             cleanupSession(self, player);
             sendMessage(player, "The retrofit was cancelled because the target or components changed.");
@@ -342,9 +295,12 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         }
         removeObjVar(self, OPERATION_ROOT);
         CustomerServiceLog(LOG_CATEGORY, "Completed retrofit operation " + operationId + " for player " + player + " on target " + target + ".");
+        // Return the piece to the inventory, as the socket retrofit tool does.
+        boolean returned = getContainedBy(target) == self && putIn(target, utils.getInventoryContainer(player), player);
         if (notifyPlayer && isIdValid(player) && exists(player))
         {
-            sendMessage(player, "The armor enhancement retrofit completed successfully. The tool remains reusable.");
+            sendMessage(player, returned ? "The armor enhancement retrofit completed successfully. The piece is back in your inventory and the tool remains reusable." :
+                "The armor enhancement retrofit completed successfully. Take the piece out of the tool; the tool remains reusable.");
         }
         return true;
     }
@@ -358,14 +314,14 @@ public class armor_enhancement_retrofit_tool extends script.base_script
     public boolean validateLoadedComponents(obj_id self) throws InterruptedException
     {
         obj_id[] contents = getContents(self);
-        if (contents == null || contents.length < 1 || contents.length > 2)
+        if (contents == null || contents.length < 1 || contents.length > 3)
         {
             return false;
         }
         obj_id feather = getLoadedFeather(self);
         obj_id cartridge = getLoadedCartridge(self);
-        int loaded = (isIdValid(feather) ? 1 : 0) + (isIdValid(cartridge) ? 1 : 0);
-        if (loaded != contents.length || isIdValid(feather) && isIdValid(cartridge) && feather.equals(cartridge))
+        int loaded = (isIdValid(feather) ? 1 : 0) + (isIdValid(cartridge) ? 1 : 0) + (isIdValid(getLoadedTarget(self)) ? 1 : 0);
+        if (loaded != contents.length || loaded < 2 || isIdValid(feather) && isIdValid(cartridge) && feather.equals(cartridge))
         {
             return false;
         }
@@ -425,6 +381,28 @@ public class armor_enhancement_retrofit_tool extends script.base_script
     public boolean isOperationLoaded(obj_id self, String loadedObjVar) throws InterruptedException
     {
         return !hasObjVar(self, loadedObjVar) || getIntObjVar(self, loadedObjVar) == 1;
+    }
+
+    public boolean isRetrofitTarget(obj_id item) throws InterruptedException
+    {
+        return armor_enhancement.isEligibleRetrofitTarget(item) && !utils.isEquipped(item);
+    }
+
+    public obj_id getLoadedTarget(obj_id self) throws InterruptedException
+    {
+        obj_id[] contents = getContents(self);
+        if (contents == null)
+        {
+            return obj_id.NULL_ID;
+        }
+        for (obj_id content : contents)
+        {
+            if (isIdValid(content) && exists(content) && armor_enhancement.isEligibleRetrofitTarget(content))
+            {
+                return content;
+            }
+        }
+        return obj_id.NULL_ID;
     }
 
     public obj_id getLoadedFeather(obj_id self) throws InterruptedException
