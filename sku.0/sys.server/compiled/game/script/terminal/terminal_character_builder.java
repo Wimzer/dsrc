@@ -7272,7 +7272,7 @@ public class terminal_character_builder extends script.base_script
     public void showArmorComponentOptions(obj_id player) throws InterruptedException
     {
         refreshMenu(player, "Random pairs sample all nine raw feather tiers and five cartridge types equally. " +
-            "Capped sets contain five +50 Health raw feathers, four +3 resistance cartridges and one +25 Terrain Negotiation cartridge. " +
+            "Capped sets contain five +50 Health raw feathers, four +3 resistance cartridges and one +5 Terrain Negotiation cartridge. " +
             "Raw feathers are converted with the RIS feather schematic into Feathered Armor Appearance Attachments. " +
             "These are finished components for crafting or retrofit; no armor is issued. " +
             "The armor kit covers seven bone-armor pieces and a retrofit tool; the cybernetic kit covers one cybernetic arm. Components are crafted at full quality.",

@@ -89,7 +89,7 @@ public class armor_enhancement extends script.base_script
 
     public static final int MAX_HEALTH = 50;
     public static final int MAX_RESISTANCE = 3;
-    public static final int MAX_SLOPE_MOVE = 25;
+    public static final int MAX_SLOPE_MOVE = 5;
 
     public static boolean isValidHealth(int value) throws InterruptedException
     {

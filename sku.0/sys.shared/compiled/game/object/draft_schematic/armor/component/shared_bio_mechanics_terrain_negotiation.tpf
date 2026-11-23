@@ -4,7 +4,7 @@
 attributes = [
 	[name="crafting" "complexity", experiment="" "", value=30..30],
 	[name="crafting" "xp", experiment="" "", value=175..175],
-	[name="crafting" "power", experiment="crafting" "expEffectiveness", value=1..25]]
+	[name="crafting" "power", experiment="crafting" "expEffectiveness", value=1..5]]
 slots = [
 	[name="craft_armor_ingredients_n" "bio_mechanics_inert_gas", hardpoint=""],
 	[name="craft_armor_ingredients_n" "bio_mechanics_agrinium", hardpoint=""],
