@@ -6,3 +6,4 @@
 
 objectName = "craft_armor_ingredients_n" "feather_health_raw"
 detailedDescription = "craft_armor_ingredients_d" "feather_health_raw"
+appearanceFilename = "appearance/eqp_comp_nutrient_supplements_liquid.apt"
