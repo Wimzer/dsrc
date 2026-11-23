@@ -199,8 +199,8 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         setObjVar(self, OPERATION_TARGET, target);
         setObjVar(self, OPERATION_FEATHER, featherLoaded ? feather : self);
         setObjVar(self, OPERATION_CARTRIDGE, cartridgeLoaded ? cartridge : self);
-        setObjVar(self, OPERATION_FEATHER_COUNT, featherLoaded ? getCount(feather) : 1);
-        setObjVar(self, OPERATION_CARTRIDGE_COUNT, cartridgeLoaded ? getCount(cartridge) : 1);
+        setObjVar(self, OPERATION_FEATHER_COUNT, featherLoaded ? getUnits(feather) : 1);
+        setObjVar(self, OPERATION_CARTRIDGE_COUNT, cartridgeLoaded ? getUnits(cartridge) : 1);
         setObjVar(self, OPERATION_FEATHER_LOADED, featherLoaded ? 1 : 0);
         setObjVar(self, OPERATION_CARTRIDGE_LOADED, cartridgeLoaded ? 1 : 0);
         setObjVar(self, OPERATION_HEALTH, payload[0]);
@@ -327,14 +327,14 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         {
             return false;
         }
-        if (isIdValid(feather) && (getContainedBy(feather) != self || getCount(feather) < 1 || armor_enhancement.getFinishedFeatherHealth(feather) < 0))
+        if (isIdValid(feather) && (getContainedBy(feather) != self || armor_enhancement.getFinishedFeatherHealth(feather) < 0))
         {
             return false;
         }
         if (isIdValid(cartridge))
         {
             int skillModIndex = armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge);
-            if (getContainedBy(cartridge) != self || getCount(cartridge) < 1 || skillModIndex < 0 ||
+            if (getContainedBy(cartridge) != self || skillModIndex < 0 ||
                 !armor_enhancement.isValidSkillMod(armor_enhancement.SKILL_MODS[skillModIndex], armor_enhancement.getFinishedCartridgeSkillValue(cartridge)))
             {
                 return false;
@@ -488,11 +488,11 @@ public class armor_enhancement_retrofit_tool extends script.base_script
     public boolean validateOperationComponents(obj_id self, obj_id feather, obj_id cartridge, int health, int skillModIndex, int skillValue) throws InterruptedException
     {
         boolean featherOk = !isOperationLoaded(self, OPERATION_FEATHER_LOADED) ||
-            isIdValid(feather) && exists(feather) && getContainedBy(feather) == self && getCount(feather) == getIntObjVar(self, OPERATION_FEATHER_COUNT) &&
+            isIdValid(feather) && exists(feather) && getContainedBy(feather) == self && getUnits(feather) == getIntObjVar(self, OPERATION_FEATHER_COUNT) &&
             armor_enhancement.getFinishedFeatherHealth(feather) == health;
         boolean cartridgeOk = !isOperationLoaded(self, OPERATION_CARTRIDGE_LOADED) ||
             isIdValid(cartridge) && exists(cartridge) && getContainedBy(cartridge) == self &&
-            getCount(cartridge) == getIntObjVar(self, OPERATION_CARTRIDGE_COUNT) && armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge) == skillModIndex &&
+            getUnits(cartridge) == getIntObjVar(self, OPERATION_CARTRIDGE_COUNT) && armor_enhancement.getFinishedCartridgeSkillModIndex(cartridge) == skillModIndex &&
             armor_enhancement.getFinishedCartridgeSkillValue(cartridge) == skillValue;
         return featherOk && cartridgeOk;
     }
@@ -517,7 +517,7 @@ public class armor_enhancement_retrofit_tool extends script.base_script
             setObjVar(self, consumedObjVar, 1);
             return 1;
         }
-        int currentCount = getCount(component);
+        int currentCount = getUnits(component);
         if (currentCount == initialCount)
         {
             return 0;
@@ -537,12 +537,25 @@ public class armor_enhancement_retrofit_tool extends script.base_script
         {
             return true;
         }
-        if (state != 0 || getContainedBy(component) != self || !decrementCount(component))
+        if (state != 0 || getContainedBy(component) != self)
+        {
+            return false;
+        }
+        // Same as reverse_engineering_tool: a stack loses one, a single item is destroyed.
+        int units = getUnits(component);
+        if (units > 1 ? !setCount(component, units - 1) : !destroyObject(component))
         {
             return false;
         }
         setObjVar(self, consumedObjVar, 1);
         return true;
+    }
+
+    // Unstacked items report count 0 (tangible_base.tpf count = 0); 0 and 1 both mean one item.
+    public int getUnits(obj_id component) throws InterruptedException
+    {
+        int count = getCount(component);
+        return count > 1 ? count : 1;
     }
 
     public boolean isInMainInventory(obj_id object, obj_id player) throws InterruptedException
