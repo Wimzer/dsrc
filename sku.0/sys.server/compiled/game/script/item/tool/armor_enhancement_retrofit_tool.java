@@ -94,16 +94,18 @@ public class armor_enhancement_retrofit_tool extends script.base_script
 
     public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
     {
+        // A container's generic Use opens it on the client and never reaches this script, so
+        // the action uses SERVER_MENU3 with the stock "Retrofit" label, as socket_retrofit_tool does.
         if (isInMainInventory(self, player))
         {
-            mi.addRootMenu(menu_info_types.ITEM_USE, new string_id("ui_radial", "item_use"));
+            mi.addRootMenu(menu_info_types.SERVER_MENU3, new string_id("spam", "retrofit_tool_retrofit"));
         }
         return SCRIPT_CONTINUE;
     }
 
     public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
     {
-        if (item != menu_info_types.ITEM_USE || !isInMainInventory(self, player))
+        if (item != menu_info_types.SERVER_MENU3 || !isInMainInventory(self, player))
         {
             return SCRIPT_CONTINUE;
         }
