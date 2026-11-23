@@ -1,0 +1,8 @@
+@base object/tangible/component/armor/shared_feather_peko_albatross.iff
+
+@class tangible_object_template 2
+
+@class object_template 7
+
+objectName = "craft_armor_ingredients_n" "feather_health_raw"
+detailedDescription = "craft_armor_ingredients_d" "feather_health_raw"

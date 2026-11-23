@@ -1186,9 +1186,9 @@ public class terminal_character_builder extends script.base_script
         "Armor Enhancement Components"
     };
     public static final String[] ARMOR_COMPONENT_OPTIONS = {
-        "Random Enhancement Pair (1 feather + 1 cartridge)",
-        "Capped Enhancement Set (5 feathers + all 5 cartridge types)",
-        "Armor Crafting Kit (clothing station, cores, panels, bone, metal, retrofit tool)",
+        "Random Enhancement Pair (1 raw feather + 1 cartridge)",
+        "Capped Enhancement Set (5 raw feathers + all 5 cartridge types)",
+        "Armor Crafting Kit (clothing station, cores, panels, bone, metal, feather conversion, retrofit tool)",
         "Cybernetic Crafting Kit (weapon station, cores, electronics, sensors, health module)"
     };
     // Test kits for crafting seven bone-armor pieces and one cybernetic arm, then retrofitting.
@@ -1206,6 +1206,9 @@ public class terminal_character_builder extends script.base_script
         {"object/draft_schematic/item/armor_enhancement_retrofit_tool.iff", "1"}
     };
     public static final String[] ARMOR_KIT_RESOURCES = {"bone", "metal"};
+    // Stock RIS feather conversion resources. These classes may have no spawned type
+    // (minimum types 0 in resource_tree.tab), so a missing one is reported, not fatal.
+    public static final String[] ARMOR_KIT_CONVERSION_RESOURCES = {"copper_polysteel", "crystalline_laboi_mineral_crystal", "ore_intrusive_oridium"};
     public static final String[] CYBER_KIT_STATIONS = {
         "object/tangible/crafting/station/weapon_station.iff",
         "object/tangible/crafting/station/weapon_tool.iff"
@@ -7268,8 +7271,9 @@ public class terminal_character_builder extends script.base_script
     }
     public void showArmorComponentOptions(obj_id player) throws InterruptedException
     {
-        refreshMenu(player, "Random pairs sample all nine feather tiers and five cartridge types equally. " +
-            "Capped sets contain five +50 Health feathers, four +3 resistance cartridges and one +25 Terrain Negotiation cartridge. " +
+        refreshMenu(player, "Random pairs sample all nine raw feather tiers and five cartridge types equally. " +
+            "Capped sets contain five +50 Health raw feathers, four +3 resistance cartridges and one +25 Terrain Negotiation cartridge. " +
+            "Raw feathers are converted with the RIS feather schematic into Feathered Armor Appearance Attachments. " +
             "These are finished components for crafting or retrofit; no armor is issued. " +
             "The armor kit covers seven bone-armor pieces and a retrofit tool; the cybernetic kit covers one cybernetic arm. Components are crafted at full quality.",
             "Armor Enhancement Components", ARMOR_COMPONENT_OPTIONS, "handleArmorComponentSelect", false);
@@ -7318,6 +7322,7 @@ public class terminal_character_builder extends script.base_script
         if (index == 2)
         {
             giveCraftingKit(player, "armor crafting kit", ARMOR_KIT_STATIONS, ARMOR_KIT_CRAFTED, ARMOR_KIT_RESOURCES);
+            giveFeatherConversion(player);
         }
         else if (index == 3)
         {
@@ -7329,6 +7334,36 @@ public class terminal_character_builder extends script.base_script
         }
         showArmorComponentOptions(player);
         return SCRIPT_CONTINUE;
+    }
+
+    // The RIS feather conversion schematic (normally from the RIS armorsmith quest) and its resources.
+    public void giveFeatherConversion(obj_id player) throws InterruptedException
+    {
+        if (!hasSchematic(player, armor_enhancement.FEATHER_CONVERSION_SCHEMATIC))
+        {
+            grantSchematic(player, armor_enhancement.FEATHER_CONVERSION_SCHEMATIC);
+        }
+        obj_id inventory = utils.getInventoryContainer(player);
+        String missing = "";
+        for (String resourceClass : ARMOR_KIT_CONVERSION_RESOURCES)
+        {
+            obj_id resourceId = pickRandomNonDepeletedResource(resourceClass);
+            if (!isIdValid(resourceId))
+            {
+                obj_id[] resourceTypes = getResourceTypes(resourceClass);
+                if (resourceTypes != null && resourceTypes.length > 0)
+                {
+                    resourceId = resourceTypes[rand(0, resourceTypes.length - 1)];
+                }
+            }
+            obj_id crate = isIdValid(resourceId) && isIdValid(inventory) && getVolumeFree(inventory) > 0 ? createResourceCrate(resourceId, ARMOR_KIT_RESOURCE_AMOUNT, inventory) : null;
+            if (!isIdValid(crate))
+            {
+                missing += (missing.length() > 0 ? ", " : "") + resourceClass;
+            }
+        }
+        sendSystemMessageTestingOnly(player, "Granted the RIS feather conversion schematic" + (missing.length() > 0 ?
+            ". Could not issue (none spawned or no inventory space): " + missing + "." : " and " + ARMOR_KIT_RESOURCE_AMOUNT + " each of its three resources."));
     }
 
     public void giveCraftingKit(obj_id player, String label, String[] stations, String[][] crafted, String[] resources) throws InterruptedException
@@ -7459,7 +7494,7 @@ public class terminal_character_builder extends script.base_script
                 sendSystemMessageTestingOnly(player, "Unable to issue the complete component set. Please check your inventory before retrying.");
             }
         }
-        sendSystemMessageTestingOnly(player, capped ? "Issued five +50 Health feathers and one capped cartridge of each type." :
+        sendSystemMessageTestingOnly(player, capped ? "Issued five +50 Health raw feathers and one capped cartridge of each type." :
             "Issued one random feather and one random cartridge. Examine them to see their values.");
     }
 

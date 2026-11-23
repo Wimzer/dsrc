@@ -68,6 +68,22 @@ public class armor_enhancement extends script.base_script
         "object/tangible/component/armor/armor_appearance_enhancement_feather_s08.iff",
         "object/tangible/component/armor/armor_appearance_enhancement_feather_s09.iff"
     };
+    // Raw Health feathers (user, 2026-11-23): dropped like the Peko-Peko feather, children of
+    // its template, and converted by the RIS feather schematic into the finished attachment.
+    // The finished tiers above no longer drop; they stay accepted for items already made.
+    public static final String[] RAW_FEATHER_TEMPLATES =
+    {
+        "object/tangible/component/armor/feather_health_s01.iff",
+        "object/tangible/component/armor/feather_health_s02.iff",
+        "object/tangible/component/armor/feather_health_s03.iff",
+        "object/tangible/component/armor/feather_health_s04.iff",
+        "object/tangible/component/armor/feather_health_s05.iff",
+        "object/tangible/component/armor/feather_health_s06.iff",
+        "object/tangible/component/armor/feather_health_s07.iff",
+        "object/tangible/component/armor/feather_health_s08.iff",
+        "object/tangible/component/armor/feather_health_s09.iff"
+    };
+    public static final String FEATHER_CONVERSION_SCHEMATIC = "object/draft_schematic/armor/armor_appearance_enhancement_feather.iff";
     public static final int[] DIRECT_FEATHER_MIN_HEALTH = { 5, 8, 11, 15, 18, 22, 26, 32, 45 };
     public static final int[] DIRECT_FEATHER_MAX_HEALTH = { 12, 15, 19, 24, 28, 32, 39, 45, 50 };
 
@@ -106,7 +122,7 @@ public class armor_enhancement extends script.base_script
         {
             return null;
         }
-        obj_id component = createObject(DIRECT_FEATHER_TEMPLATES[tier], inventory, "");
+        obj_id component = createObject(RAW_FEATHER_TEMPLATES[tier], inventory, "");
         if (!isIdValid(component) || !exists(component))
         {
             return null;
@@ -120,7 +136,7 @@ public class armor_enhancement extends script.base_script
             // Template crafting slots accept only crafted components (PlayerObject::fillSlot);
             // mark the feather the way loot.randomizeComponent marks a dropped component.
             valid = setCraftedId(component, inventory) && setCrafter(component, inventory) &&
-                getFinishedFeatherHealth(component) == health;
+                getAttributeBonus(component, HEALTH) == health;
             return valid ? component : null;
         }
         finally
